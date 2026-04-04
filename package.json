@@ -1,0 +1,23 @@
+{
+  "name": "chess-coach",
+  "version": "0.1.0",
+  "description": "AI 国际象棋复盘 Chrome 插件 - 给14岁孩子的趣味复盘工具",
+  "scripts": {
+    "dev": "wxt dev",
+    "build": "wxt build",
+    "preview": "wxt preview"
+  },
+  "dependencies": {
+    "chess.js": "^1.0.0",
+    "stockfish": "^16.0.0",
+    "stockfish.js": "^10.0.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@wxt-dev/module-react": "^1.2.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.4.0",
+    "wxt": "^0.20.20"
+  }
+}
