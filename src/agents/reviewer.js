@@ -1,101 +1,20 @@
 /**
  * Chess Reviewer Agent
- * 
- * 生成趣味复盘卡片
  */
 
-export interface Blunder {
-  move: number;
-  san: string;
-  comment: string;
-  evalLoss: number;
-}
-
-export interface Brilliant {
-  move: number;
-  san: string;
-  comment: string;
-  evalGain: number;
-}
-
-export interface GameInfo {
-  username: string;
-  opponent: string;
-  result: 'win' | 'lose' | 'draw';
-  timeControl: string;
-  date: string;
-  rating?: number;
-  opponentRating?: number;
-}
-
-export interface Analysis {
-  accuracy: number;
-  blunders: Blunder[];
-  brilliants: Brilliant[];
-  opening?: string;
-}
-
-export interface UserProfile {
-  userId: string;
-  xp: number;
-  level: number;
-  streak: number;
-  stats: {
-    totalGames: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    brilliants: number;
-    blunders: number;
-  };
-  radar: {
-    opening: number;
-    middlegame: number;
-    endgame: number;
-    defense: number;
-    attack: number;
-  };
-}
-
-export interface ReviewResult {
-  markdown: string;
-  html: string;
-  funnyComment: string;
-}
-
-export class ChessReviewerAgent {
-  /**
-   * 生成趣味复盘卡片
-   */
-  async generate(input: {
-    gameInfo: GameInfo;
-    analysis: Analysis;
-    userProfile: UserProfile;
-  }): Promise<ReviewResult> {
+class ChessReviewerAgent {
+  async generate(input) {
     console.log(`[Reviewer] Generating review card...`);
+    const { gameInfo, analysis } = input;
 
-    const { gameInfo, analysis, userProfile } = input;
-
-    // 生成趣味评语
     const funnyComment = this.generateFunnyComment(gameInfo.result, analysis.accuracy);
-
-    // 构建 Markdown
     const markdown = this.buildMarkdown(gameInfo, analysis, funnyComment);
-
-    // 转换为 HTML
     const html = this.markdownToHtml(markdown);
 
-    return {
-      markdown,
-      html,
-      funnyComment,
-    };
+    return { markdown, html, funnyComment };
   }
 
-  /**
-   * 生成趣味评语
-   */
-  private generateFunnyComment(result: string, accuracy: number): string {
+  generateFunnyComment(result, accuracy) {
     if (result === 'win') {
       if (accuracy >= 90) return '这盘棋下得太帅了！简直是天选之人，对手都被你的王霸之气震慑到了！✨';
       if (accuracy >= 80) return '漂亮！虽然中间有点小波折，但最后还是完美收官！继续保持这个状态！🔥';
@@ -107,15 +26,12 @@ export class ChessReviewerAgent {
     return '平局也是一种艺术！说明你和对手势均力敌，下次再战！🤝';
   }
 
-  /**
-   * 构建 Markdown
-   */
-  private buildMarkdown(gameInfo: GameInfo, analysis: Analysis, funnyComment: string): string {
+  buildMarkdown(gameInfo, analysis, funnyComment) {
     const resultEmoji = gameInfo.result === 'win' ? '🏆' : gameInfo.result === 'lose' ? '😢' : '🤝';
     const resultText = gameInfo.result === 'win' ? '胜利' : gameInfo.result === 'lose' ? '失败' : '平局';
 
-    const worstBlunder = analysis.blunders[0];
-    const bestBrilliant = analysis.brilliants[0];
+    const worstBlunder = analysis.blunders && analysis.blunders[0];
+    const bestBrilliant = analysis.brilliants && analysis.brilliants[0];
 
     let md = `${resultEmoji} 对局复盘：vs ${gameInfo.opponent} (${gameInfo.timeControl})\n\n`;
     md += `🏆 结果：${resultText}！\n\n`;
@@ -135,10 +51,7 @@ export class ChessReviewerAgent {
     return md;
   }
 
-  /**
-   * Markdown 转 HTML（简化版）
-   */
-  private markdownToHtml(md: string): string {
+  markdownToHtml(md) {
     return md
       .split('\n')
       .map(line => {
@@ -152,3 +65,5 @@ export class ChessReviewerAgent {
       .join('');
   }
 }
+
+module.exports = { ChessReviewerAgent };

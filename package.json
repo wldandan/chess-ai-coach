@@ -6,7 +6,8 @@
     "dev": "wxt dev",
     "build": "wxt build",
     "preview": "wxt preview",
-    "api": "node src/api/server.js"
+    "api": "node src/api/server.js",
+    "api:mock": "node src/api/mock-server.js"
   },
   "dependencies": {
     "chess.js": "^1.0.0",
