@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "wxt dev",
     "build": "wxt build",
-    "preview": "wxt preview"
+    "preview": "wxt preview",
+    "api": "node src/api/server.js"
   },
   "dependencies": {
     "chess.js": "^1.0.0",
@@ -14,9 +15,13 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
     "@wxt-dev/module-react": "^1.2.2",
+    "express": "^4.21.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5.4.0",
     "wxt": "^0.20.20"
   }
