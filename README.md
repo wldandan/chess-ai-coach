@@ -38,54 +38,92 @@
 │  │              (用户数据本地持久化)             │      │
 │  └─────────────────────────────────────────────┘      │
 └─────────────────────────────────────────────────────────┘
-                          │ PGN / 用户名
+                          │ HTTP API
                           ▼
 ┌─────────────────────────────────────────────────────────┐
-│                 OpenClaw Agents (服务器)                  │
-│                                                         │
-│  ┌──────────────┐   ┌──────────────┐                  │
-│  │ chess-crawler│──▶│ chess-engine │                  │
-│  │  (历史存档)   │   │ (Stockfish)  │                  │
-│  └──────────────┘   └──────┬───────┘                  │
-│                             │                           │
-│                             ▼                           │
-│                    ┌────────────────┐                   │
-│                    │ chess-analyst  │                   │
-│                    │  (AI 深度复盘)  │                   │
-│                    └───────┬────────┘                   │
-│                            │                            │
-│                            ▼                            │
-│                    ┌────────────────┐                   │
-│                    │chess-reviewer  │                   │
-│                    │  (趣味评语)     │                   │
-│                    └───────┬────────┘                   │
-│                            │                            │
-│                            ▼                            │
-│                    ┌────────────────┐                  │
-│                    │chess-gamification│                  │
-│                    │  (XP/称号/成就)  │                  │
-│                    └─────────────────┘                  │
-└─────────────────────────────────────────────────────────┘
+│              chess-orchestrator (总管 Agent)              │
+│                    OpenClaw Gateway                      │
+│                 POST /api/chess-coach                   │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+          ┌─────────────────┼─────────────────┐
+          ▼                 ▼                 ▼
+┌────────────────┐ ┌──────────────┐ ┌─────────────────┐
+│ chess-crawler  │ │chess-engine  │ │ chess-analyst   │
+│  (历史存档)    │ │ (Stockfish) │ │ (AI 深度复盘)   │
+└────────────────┘ └──────────────┘ └────────┬────────┘
+                                             │
+                              ┌──────────────┴──────────────┐
+                              ▼                             ▼
+                    ┌─────────────────┐          ┌─────────────────┐
+                    │chess-reviewer   │          │chess-gamification│
+                    │  (趣味评语)     │          │  (XP/称号/成就)  │
+                    └─────────────────┘          └─────────────────┘
 ```
 
-## 数据流说明
+## API 接口
 
-| 场景 | 组件 | 说明 |
-|------|------|------|
-| **实时抓取** | Content Script | 用户在 chess.com 看某局棋时，一键提取当前页面 PGN |
-| **历史查询** | chess-crawler | 根据用户名从 chess.com API 读取历史对局存档 |
-| **本地缓存** | chrome.storage | 保存用户名、XP、成就等数据 |
-| **AI 分析** | chess-analyst | 深度复盘讲解（失误、亮点、教学建议） |
+**入口**: `POST /api/chess-coach`
+
+| Action | 说明 | 返回 |
+|--------|------|------|
+| `analyze` | 分析 PGN 棋谱 | accuracy, blunders, brilliants, phaseScores |
+| `crawl_user` | 抓取用户历史对局 | username, games[] |
+| `full_review` | 完整复盘（一条龙）| gameInfo, analysis, review, gamification, chessAnalyst |
+
+### 请求格式
+
+```json
+// analyze - 分析 PGN
+{
+  "action": "analyze",
+  "pgn": "1.e4 e5 2.Nf3 Nc6",
+  "userId": "xxx"
+}
+
+// crawl_user - 抓取用户历史
+{
+  "action": "crawl_user",
+  "username": "MagnusFan2024",
+  "limit": 10
+}
+
+// full_review - 完整复盘
+{
+  "action": "full_review",
+  "pgn": "1.e4 e5 2.Nf3 Nc6 3.Bb5 a6",
+  "userId": "xxx",
+  "username": "ChessKid"
+}
+```
+
+### 响应格式
+
+```json
+{
+  "success": true,
+  "data": {
+    "gameId": "game_xxx",
+    "gameInfo": { ... },
+    "analysis": { "accuracy": 82.5, "blunders": [...], "brilliants": [...] },
+    "review": { "markdown": "...", "html": "..." },
+    "gamification": { "xpGained": 8, "newTitles": [...], "radarData": {...} },
+    "chessAnalyst": { "summary": "...", "keyMistakes": [...], "bestMoves": [...], "todayLesson": "..." }
+  },
+  "requestId": "req_xxx"
+}
+```
 
 ## Agent 分工
 
-| Agent | 职责 | 触发场景 |
-|-------|------|---------|
-| `chess-crawler` | chess.com API 历史存档读取 | 用户输入用户名，批量获取历史对局 |
-| `chess-engine` | Stockfish 引擎分析漏着/妙着 | 输入 PGN，输出评估数据 |
-| `chess-analyst` | AI 深度复盘分析 | 输入分析结果，输出教学建议 |
-| `chess-reviewer` | LLM 生成趣味复盘卡片 | 输入复盘数据，输出青少年友好评语 |
-| `chess-gamification` | XP/称号/成就/雷达图 | 用户每次复盘后更新数据 |
+| Agent | 职责 | 入口 |
+|-------|------|------|
+| `chess-orchestrator` | 对外 API 入口，调度内部 Agent | ✅ 核心入口 |
+| `chess-crawler` | chess.com API 历史存档读取 | 被 orchestrator 调用 |
+| `chess-engine` | Stockfish 引擎分析漏着/妙着 | 被 orchestrator 调用 |
+| `chess-analyst` | AI 深度复盘分析（失误讲解、教学建议） | 被 orchestrator 调用 |
+| `chess-reviewer` | LLM 生成趣味复盘卡片 | 被 orchestrator 调用 |
+| `chess-gamification` | XP/称号/成就/雷达图 | 被 orchestrator 调用 |
 
 ## chess-analyst Agent
 
@@ -124,6 +162,9 @@ npm install
 # 开发模式
 npm run dev
 
+# 启动 Mock API Server
+npm run api
+
 # 构建发布
 npm run build
 ```
@@ -132,6 +173,7 @@ npm run build
 
 - **Chrome 插件**: WXT 框架
 - **多 Agent**: OpenClaw
+- **API 网关**: chess-orchestrator
 - **AI 复盘**: chess-analyst Agent
 - **棋谱解析**: chess.js
 - **引擎分析**: Stockfish WASM
@@ -140,4 +182,4 @@ npm run build
 
 ---
 
-*版本：v2.1 | 更新：2026-04-04*
+*版本：v2.2 | 更新：2026-04-04*
