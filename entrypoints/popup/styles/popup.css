@@ -501,6 +501,59 @@ body {
 }
 
 /* ============================================
+   Error Message
+   ============================================ */
+.error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: rgba(255, 49, 49, 0.15);
+  border: 1px solid var(--neon-red);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
+.error-icon {
+  font-size: 1.2rem;
+}
+
+.error-text {
+  color: var(--neon-red);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* ============================================
+   Config Status
+   ============================================ */
+.config-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.config-badge {
+  background: var(--bg-input);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--neon-cyan);
+  border: 1px solid var(--neon-cyan);
+}
+
+.mode-badge {
+  background: var(--bg-input);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  border: 1px solid var(--text-muted);
+}
+
+/* ============================================
    Utility Classes
    ============================================ */
 .neon-text-cyan { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }

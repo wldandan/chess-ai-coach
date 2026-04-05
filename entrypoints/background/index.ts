@@ -1,214 +1,283 @@
-export default defineBackground({
-  type: 'module',
-  persistent: false,
+// Background Script - Service Worker
+// 处理右键菜单、消息传递、API 调用中转
 
-  main() {
-    console.log('[Chess Coach] Background service worker started');
+import type { ChromeMessage, UserConfig } from '../../src/shared/types';
 
-    // Handle messages from popup and content scripts
-    browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      handleMessage(message)
-        .then(sendResponse)
-        .catch((err) => {
-          console.error('[Chess Coach] Message error:', err);
-          sendResponse({ success: false, error: err.message });
-        });
-      return true; // Keep channel open for async response
-    });
+interface PgnData {
+  pgn: string;
+  evaluations?: Array<{
+    moveNumber: number;
+    san: string;
+    evaluation?: number;
+    isMistake?: boolean;
+    isBlunder?: boolean;
+  }>;
+  url?: string;
+  gameId?: string;
+  source?: 'api' | 'dom';
+}
 
-    // Handle extension icon click (when no popup is defined)
-    browser.action.onClicked.addListener((tab) => {
-      console.log('[Chess Coach] Extension icon clicked on tab:', tab.id);
-    });
-  },
+const CONFIG_KEY = 'chess_coach_config';
+
+// ============== 配置管理 ==============
+
+async function getConfig(): Promise<UserConfig> {
+  const result = await browser.storage.local.get(CONFIG_KEY);
+  return result[CONFIG_KEY] || { username: '', analysisMode: 'chess-com', apiKey: '' };
+}
+
+async function saveConfig(config: UserConfig): Promise<void> {
+  await browser.storage.local.set({ [CONFIG_KEY]: config });
+}
+
+// ============== 右键菜单 ==============
+
+browser.runtime.onInstalled.addListener(() => {
+  browser.contextMenus.create({
+    id: 'analyzeGame',
+    title: '复盘这盘棋 🏰',
+    contexts: ['page'],
+    documentUrlPatterns: [
+      'https://www.chess.com/*',
+      'https://lichess.org/*',
+    ],
+  });
+  console.log('[Chess Coach] Context menu created');
 });
 
-interface Message {
-  action: string;
-  username?: string;
-  gameData?: any;
-}
+// ============== 右键菜单点击处理 ==============
 
-interface AgentResponse {
-  success: boolean;
-  data?: any;
-  error?: string;
-}
+browser.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === 'analyzeGame' && tab?.id) {
+    console.log('[Chess Coach] Analyze menu clicked');
 
-async function handleMessage(message: Message): Promise<AgentResponse> {
-  const { action } = message;
+    const url = tab.url || '';
+    const gameIdMatch = url.match(/\/game\/\w+\/(\d+)/);
 
-  switch (action) {
-    case 'analyzeGame':
-      return handleAnalyzeGame(message.username!);
+    if (!gameIdMatch) {
+      console.error('[Chess Coach] No game ID found in URL');
+      return;
+    }
 
-    case 'processGameAnalysis':
-      return handleProcessGameAnalysis(message.gameData!, message.username!);
+    const gameId = gameIdMatch[1];
+    const config = await getConfig();
 
-    case 'openPopup':
-      return { success: true };
+    if (!config.username) {
+      console.error('[Chess Coach] No username configured');
+      browser.tabs.create({
+        url: browser.runtime.getURL('index.html'), // 打开 popup 引导设置
+      });
+      return;
+    }
+
+    let pgnData: PgnData | null = null;
+
+    // 优先尝试 DOM 方式获取
+    console.log('[Chess Coach] Trying DOM extraction...');
+    pgnData = await fetchPGNFromDOM(tab.id, gameId);
+
+    // 如果 DOM 方式失败，跳转到分析页面
+    if (!pgnData && !url.includes('/analysis/')) {
+      console.log('[Chess Coach] DOM extraction failed, navigating to analysis page...');
+      const analysisUrl = url.replace(/\/game\/(\w+)\/(\d+).*/, '/game/$1/$2/analysis');
+      await browser.tabs.update(tab.id, { url: analysisUrl });
+      await waitForTabLoad(tab.id);
+      pgnData = await fetchPGNFromDOM(tab.id, gameId);
+    }
+
+    // 如果分析页面 DOM 也失败，使用 API
+    if (!pgnData) {
+      console.log('[Chess Coach] Falling back to API');
+      pgnData = await fetchPGNFromAPI(gameId, config.username);
+    }
+
+    if (pgnData) {
+      await handlePgnReady(pgnData);
+    } else {
+      console.error('[Chess Coach] Failed to get PGN from all sources');
+    }
+  }
+});
+
+// ============== 消息监听 ==============
+
+browser.runtime.onMessage.addListener((message: ChromeMessage, _sender, sendResponse) => {
+  console.log('[Chess Coach] Background received message:', message.type);
+
+  switch (message.type) {
+    case 'START_REVIEW':
+      (async () => {
+        const gameId = message.gameId as string;
+        const config = await getConfig();
+
+        if (!config.username) {
+          sendResponse({ success: false, error: '请先配置用户名' });
+          return;
+        }
+
+        const pgnData = await fetchPGNFromAPI(gameId, config.username);
+        if (pgnData) {
+          await handlePgnReady(pgnData);
+          sendResponse({ success: true });
+        } else {
+          sendResponse({ success: false, error: '无法获取对局数据' });
+        }
+      })();
+      break;
+
+    case 'GET_CONFIG':
+      getConfig().then(config => sendResponse({ success: true, data: config }));
+      break;
+
+    case 'SAVE_CONFIG':
+      if (message.payload) {
+        saveConfig(message.payload as UserConfig).then(() =>
+          sendResponse({ success: true })
+        );
+      }
+      break;
+
+    case 'ANALYSIS_RESULT':
+      console.log('[Chess Coach] Analysis complete');
+      sendResponse({ success: true });
+      break;
+
+    case 'ERROR':
+      console.error('[Chess Coach] Error:', message.payload);
+      sendResponse({ success: false, error: message.payload });
+      break;
 
     default:
-      return { success: false, error: `Unknown action: ${action}` };
+      sendResponse({ success: false, error: `Unknown message type: ${message.type}` });
   }
-}
 
-async function handleAnalyzeGame(username: string): Promise<AgentResponse> {
+  return true; // 保持通道开放
+});
+
+// ============== PGN 获取方法 ==============
+
+async function fetchPGNFromDOM(tabId: number, gameId: string): Promise<PgnData | null> {
+  console.log('[Chess Coach] Fetching PGN from DOM for game:', gameId);
+
   try {
-    // Try fetching real games first
-    const games = await fetchUserGames(username);
-    
-    if (games.length > 0) {
-      const latestGame = games[0];
-      return await handleProcessGameAnalysis(latestGame, username);
+    const tab = await browser.tabs.get(tabId);
+    console.log('[Chess Coach] Tab URL:', tab.url, 'status:', tab.status);
+
+    if (tab.status !== 'complete') {
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
-    // Fallback to mock data for demo
-    console.log('[Chess Coach] No real games found, using mock data');
-    return await handleMockAnalysis(username);
-  } catch (error: any) {
-    console.error('[Chess Coach] Analyze game error:', error);
-    // Fallback to mock on any error
-    return await handleMockAnalysis(username);
-  }
-}
+    const response = await browser.tabs.sendMessage(tabId, { type: 'GET_GAME', gameId });
+    console.log('[Chess Coach] DOM response:', response);
 
-async function handleMockAnalysis(username: string): Promise<AgentResponse> {
-  // Simulate some delay for realism
-  await new Promise(resolve => setTimeout(resolve, 800));
-
-  const mockPGN = `[Event "Live Chess"]
-[Site "Chess.com"]
-[Date "2026.03.30"]
-[White "${username}"]
-[Black "MagnusCarlsen"]
-[Result "1-0"]
-[WhiteElo "1523"]
-[BlackElo "2847"]
-[TimeControl "900+10"]
-[Termination "${username} won by checkmate"]
-
-1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 11. Nbd2 Bb7 12. Bc2 Re8 13. Nf1 Bf8 14. Ng3 g6 15. a4 c5 16. d5 c4 17. b4 Nh5 18. Nxh5 gxh5 19. Qd2 h6 20. Bf5 Nf6 21. Rf1 Kg7 22. Qe3 Rh8 23. Qf3 Be7 24. Bc2 Bf8 25. g3 Be7 26. Kg2 Bd8 27. Qe3 Be7 28. Rh1 Qd7 29. h4 Rag8 30. Rh3 Qa7 31. Qd2 Qxd4 32. cxd4 exd4 33. e5 dxe5 34. Nxe5 Bd5 35. Qf4 Bxe5 36. Qxe5+ Kh7 37. Bf5+ Kg7 38. Qf6+ Kh7 39. Bg6+ Kxg6 40. Qf7+ Kh6 41. Rhg3 Rg7 42. Qf8+ Rg8 43. Qxf6+ Kh5 44. g4+ Kh4 45. Qh6# 1-0`;
-
-  const mockAnalysis = {
-    accuracy: 87.3,
-    blunders: [{ move: 24, san: 'Bd3', comment: '这步象有点浪，下一步直接被抽了！', evalLoss: 120 }],
-    brilliants: [{ move: 31, san: 'Qxd4', comment: '皇后偷杀！对面直接原地裂开 😎', evalGain: 250 }],
-    mistakes: [{ move: 19, san: 'h5', comment: '兵被吃了，但这步也有道理', evalLoss: 45 }],
-  };
-
-  const rewards = calculateRewards(mockAnalysis);
-
-  return {
-    success: true,
-    data: {
-      username,
-      accuracy: mockAnalysis.accuracy,
-      blunders: mockAnalysis.blunders,
-      brilliants: mockAnalysis.brilliants,
-      mistakes: mockAnalysis.mistakes,
-      xp: rewards.xp,
-      title: rewards.title,
-      gameUrl: 'https://www.chess.com/game/live/mock-demo',
-      pgn: mockPGN,
-    },
-  };
-}
-
-async function handleProcessGameAnalysis(gameData: any, username: string): Promise<AgentResponse> {
-  try {
-    // Extract PGN and game info
-    const { pgn, white, black, result, opening, url } = gameData;
-
-    if (!pgn) {
-      return { success: false, error: '无法获取对局数据' };
+    if (response && response.pgn) {
+      return {
+        pgn: response.pgn,
+        url: response.url,
+        gameId: gameId,
+        source: 'dom',
+      };
     }
-
-    // Call OpenClaw Agent for analysis (placeholder - actual implementation would use agent SDK)
-    const analysis = await callAnalysisAgent(pgn, username);
-
-    // Calculate gamification rewards
-    const rewards = calculateRewards(analysis);
-
-    return {
-      success: true,
-      data: {
-        username,
-        accuracy: analysis.accuracy,
-        blunders: analysis.blunders,
-        brilliants: analysis.brilliants,
-        mistakes: analysis.mistakes,
-        xp: rewards.xp,
-        title: rewards.title,
-        gameUrl: url,
-      },
-    };
-  } catch (error: any) {
-    console.error('[Chess Coach] Process game error:', error);
-    return { success: false, error: error.message };
-  }
-}
-
-async function fetchUserGames(username: string): Promise<any[]> {
-  // Fetch from chess.com API
-  try {
-    const response = await fetch(
-      `https://api.chess.com/pub/player/${username}/games?limit=1`,
-      { headers: { 'User-Agent': 'ChessCoach/1.0' } }
-    );
-    
-    if (!response.ok) {
-      throw new Error(`Chess.com API error: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    return data.games || [];
+    return null;
   } catch (error) {
-    console.error('[Chess Coach] Fetch games error:', error);
-    return [];
+    console.error('[Chess Coach] Failed to fetch from DOM:', error);
+    return null;
   }
 }
 
-async function callAnalysisAgent(pgn: string, username: string): Promise<any> {
-  // Placeholder for actual OpenClaw Agent integration
-  // In production, this would call the orchestrator agent
-  // For now, return demo data with realistic variations
-  
-  // Simulate analysis delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+async function fetchPGNFromAPI(gameId: string, username: string): Promise<PgnData | null> {
+  try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
 
-  // Generate somewhat realistic demo data
-  const baseAccuracy = 65 + Math.random() * 30; // 65-95%
-  const blunders = Math.floor(Math.random() * 4);
-  const mistakes = Math.floor(Math.random() * 5);
-  const brilliants = Math.floor(Math.random() * 3);
+    const monthsToTry = [
+      { year, month },
+      { year: month === 1 ? year - 1 : year, month: month === 1 ? 12 : month - 1 },
+      { year: month <= 2 ? year - 1 : year, month: month <= 2 ? 12 + (month - 2) : month - 2 },
+    ];
 
-  return {
-    accuracy: Math.round(baseAccuracy * 10) / 10,
-    blunders,
-    mistakes,
-    brilliants,
-  };
+    console.log('[Chess Coach] Searching for game:', gameId, 'for user:', username);
+
+    for (const { year: y, month: m } of monthsToTry) {
+      const monthStr = String(m).padStart(2, '0');
+      const apiUrl = `https://api.chess.com/pub/player/${username}/games/${y}/${monthStr}`;
+      console.log('[Chess Coach] Trying:', apiUrl);
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const games = data.games || [];
+        const targetGame = games.find((g: { url?: string }) => g.url && g.url.includes(gameId));
+
+        if (targetGame) {
+          console.log('[Chess Coach] Found game via API!');
+          return {
+            pgn: targetGame.pgn,
+            url: targetGame.url,
+            gameId: gameId,
+            source: 'api',
+          };
+        }
+      } catch (e) {
+        console.log('[Chess Coach] Fetch failed:', e);
+      }
+    }
+
+    console.error('[Chess Coach] Game not found in last 3 months');
+    return null;
+  } catch (error) {
+    console.error('[Chess Coach] Failed to fetch PGN:', error);
+    return null;
+  }
 }
 
-function calculateRewards(analysis: any): { xp: number; title: string } {
-  const { accuracy, blunders, brilliants } = analysis;
+async function waitForTabLoad(tabId: number): Promise<void> {
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      console.log('[Chess Coach] Tab load timeout');
+      resolve();
+    }, 5000);
 
-  // XP calculation based on performance
-  let xp = 50; // Base XP
-  xp += Math.round(accuracy * 0.5); // Accuracy bonus
-  xp += brilliants * 15; // Brilliant move bonus
-  xp -= blunders * 10; // Blunder penalty
-  xp = Math.max(0, xp); // Floor at 0
-
-  // Title based on accuracy
-  let title = '初出茅庐';
-  if (accuracy >= 95) title = '棋王';
-  else if (accuracy >= 90) title = '大师之路';
-  else if (accuracy >= 85) title = '战术高手';
-  else if (accuracy >= 80) title = '棋坛新秀';
-  else if (accuracy >= 75) title = '战术新星';
-  else if (accuracy >= 70) title = '初出茅庐';
-
-  return { xp, title };
+    browser.tabs.onUpdated.addListener(function listener(tabIdListener, changeInfo) {
+      if (tabIdListener === tabId && changeInfo.status === 'complete') {
+        clearTimeout(timeout);
+        browser.tabs.onUpdated.removeListener(listener);
+        console.log('[Chess Coach] Tab load complete');
+        resolve();
+      }
+    });
+  });
 }
+
+// ============== 处理 PGN 数据 ==============
+
+async function handlePgnReady(pgnData: PgnData): Promise<void> {
+  try {
+    // 存储到 session 以便跨页面传递
+    await browser.storage.session.set({ pendingGameData: pgnData });
+    console.log('[Chess Coach] PGN data stored in session storage');
+
+    // 打开 popup（用户可以在 popup 中看到分析结果）
+    // 或者打开新的分析标签页
+    const popupUrl = browser.runtime.getURL('index.html');
+    await browser.tabs.create({
+      url: popupUrl,
+      active: true,
+    });
+
+    console.log('[Chess Coach] Opened popup');
+  } catch (error) {
+    console.error('[Chess Coach] Failed to open popup:', error);
+  }
+}
+
+// ============== 保持 Service Worker 活跃 ==============
+
+browser.runtime.onConnect.addListener((port) => {
+  console.log('[Chess Coach] Connected to:', port.name);
+});
+
+console.log('[Chess Coach] Background service worker started');
