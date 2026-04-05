@@ -1,0 +1,1 @@
+../../../agents/chess-crawler/SKILL.md

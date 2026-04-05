@@ -1,0 +1,1 @@
+../../../agents/chess-reviewer/SKILL.md

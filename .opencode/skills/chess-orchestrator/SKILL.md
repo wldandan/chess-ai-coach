@@ -1,0 +1,1 @@
+../../../agents/chess-orchestrator/SKILL.md

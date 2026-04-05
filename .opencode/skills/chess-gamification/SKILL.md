@@ -1,0 +1,1 @@
+../../../agents/chess-gamification/SKILL.md

@@ -1,0 +1,1 @@
+../../../agents/chess-analyst/SKILL.md

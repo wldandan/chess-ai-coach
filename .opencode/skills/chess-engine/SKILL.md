@@ -1,0 +1,1 @@
+../../../agents/chess-engine/SKILL.md
