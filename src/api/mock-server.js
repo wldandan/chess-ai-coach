@@ -1,13 +1,13 @@
 /**
- * Chess Coach Mock API Server
- * 
- * 运行方式: npx ts-node src/api/server.ts
+ * Chess Coach API Mock Server
+ *
+ * 使用 mock.js 提供模拟数据
  * 端口: 18789
  * 端点: http://localhost:18789/api/chess-coach
  */
 
-import express, { Request, Response } from 'express';
-import { handleApiRequest, AnalyzeRequest, CrawlUserRequest, FullReviewRequest } from './mock';
+const express = require('express');
+const { handleApiRequest } = require('./mock');
 
 const app = express();
 const PORT = 18789;
@@ -34,15 +34,13 @@ app.use((req, res, next) => {
 });
 
 // API endpoint
-app.post('/api/chess-coach', async (req: Request, res: Response) => {
+app.post('/api/chess-coach', async (req, res) => {
   try {
     const body = req.body;
     console.log('Request:', JSON.stringify(body, null, 2));
-    
-    const result = await handleApiRequest(
-      body as AnalyzeRequest | CrawlUserRequest | FullReviewRequest
-    );
-    
+
+    const result = await handleApiRequest(body);
+
     console.log('Response:', result.success ? '✅ success' : '❌ error');
     res.json(result);
   } catch (error) {
@@ -67,12 +65,12 @@ app.listen(PORT, () => {
 ║       🎯 Chess Coach API Mock Server                  ║
 ╠═══════════════════════════════════════════════════════╣
 ║  URL: http://localhost:${PORT}                         ║
-║  Endpoint: POST /api/chess-coach                       ║
+║  Endpoint: POST /api/chess-coach                      ║
 ╠═══════════════════════════════════════════════════════╣
 ║  Actions:                                             ║
-║    • analyze      - 分析 PGN 棋谱                    ║
-║    • crawl_user   - 抓取用户历史对局                  ║
-║    • full_review - 完整复盘（analyze + review）       ║
+║    • analyze      - 分析 PGN 棋谱                     ║
+║    • crawl_user   - 抓取用户历史对局                   ║
+║    • full_review  - 完整复盘（analyze + review）       ║
 ╚═══════════════════════════════════════════════════════╝
   `);
 });

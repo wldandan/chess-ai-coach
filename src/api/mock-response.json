@@ -1,0 +1,242 @@
+{
+  "analyze": {
+    "success": true,
+    "data": {
+      "gameId": "game_001",
+      "accuracy": 75.3,
+      "blunders": [
+        {
+          "move": 17,
+          "san": "c4",
+          "comment": "弃兵太激进，导致子力失衡",
+          "evalLoss": 1.8,
+          "bestMove": "Bg5",
+          "severity": "high",
+          "explanation": "作为 1470 分的棋手，你更擅长局面战而非战术对攻。建议走 Bg5 保持子力平衡。"
+        },
+        {
+          "move": 24,
+          "san": "Na5",
+          "comment": "马跳得太远，容易被围剿",
+          "evalLoss": 0.9,
+          "bestMove": "Nc3",
+          "severity": "medium"
+        }
+      ],
+      "mistakes": [
+        {
+          "move": 19,
+          "san": "b4",
+          "comment": "进攻方向选择值得商榷",
+          "evalLoss": 0.5,
+          "severity": "low"
+        }
+      ],
+      "brilliants": [
+        {
+          "move": 13,
+          "san": "Kb1",
+          "comment": "王手预防，思路清晰！",
+          "evalGain": 0.4,
+          "severity": "good"
+        }
+      ],
+      "opening": "Open Game - Italian Variation",
+      "eco": "C50",
+      "phaseScores": {
+        "opening": 0.72,
+        "middlegame": 0.58,
+        "endgame": 0.45,
+        "defense": 0.52,
+        "attack": 0.68
+      },
+      "pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 11. Nbd2 Bb7 12. Bc2 Re8 13. Nf1 Bf8 14. Ng3 g6 15. Bg5 h6 16. Bd2 Bg7 17. a4 c5 18. d5 c4 19. b4 Nh5 20. Nxh5 gxh5"
+    },
+    "requestId": "req_analyze_001"
+  },
+
+  "crawl_user": {
+    "success": true,
+    "data": {
+      "username": "aaronwang2026",
+      "games": [
+        {
+          "gameId": "game_001",
+          "opponent": "MagnusCarlsen",
+          "opponentRating": 2850,
+          "result": "lose",
+          "timeControl": "15+10",
+          "date": "2026-04-03",
+          "myRating": 1470,
+          "url": "https://www.chess.com/game/live/123456789",
+          "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.04.03\"]\n[White \"MagnusCarlsen\"]\n[Black \"aaronwang2026\"]\n[Result \"1-0\"]\n[WhiteElo \"2850\"]\n[BlackElo \"1470\"]\n[TimeControl \"900+10\"]\n[Termination \"MagnusCarlsen wins by checkmate\"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 1-0"
+        },
+        {
+          "gameId": "game_002",
+          "opponent": "Hikaru",
+          "opponentRating": 3200,
+          "result": "lose",
+          "timeControl": "15+10",
+          "date": "2026-04-02",
+          "myRating": 1470,
+          "url": "https://www.chess.com/game/live/123456788",
+          "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.04.02\"]\n[White \"Hikaru\"]\n[Black \"aaronwang2026\"]\n[Result \"1-0\"]\n[WhiteElo \"3200\"]\n[BlackElo \"1470\"]\n[TimeControl \"900+10\"]\n[Termination \"Hikaru wins by checkmate\"]\n\n1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 1-0"
+        },
+        {
+          "gameId": "game_003",
+          "opponent": "taal_28sep",
+          "opponentRating": 1457,
+          "result": "win",
+          "timeControl": "15+10",
+          "date": "2026-03-28",
+          "myRating": 1470,
+          "url": "https://www.chess.com/game/live/123456787",
+          "pgn": "[Event \"Live Chess\"]\n[Site \"Chess.com\"]\n[Date \"2026.03.28\"]\n[White \"aaronwang2026\"]\n[Black \"taal_28sep\"]\n[Result \"1-0\"]\n[WhiteElo \"1470\"]\n[BlackElo \"1457\"]\n[TimeControl \"900+10\"]\n[Termination \"aaronwang2026 wins by checkmate\"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Nb8 10. d4 Nbd7 11. Nbd2 Bb7 12. Bc2 Re8 13. Nf1 Bf8 14. Ng3 g6 15. Bg5 h6 16. Bd2 Bg7 1-0"
+        }
+      ],
+      "totalGames": 240,
+      "hasMore": true
+    },
+    "requestId": "req_crawl_001"
+  },
+
+  "full_review": {
+    "success": true,
+    "data": {
+      "gameId": "game_001",
+      "gameInfo": {
+        "opponent": "MagnusCarlsen",
+        "opponentRating": 2850,
+        "result": "lose",
+        "timeControl": "15+10",
+        "date": "2026-04-03",
+        "myRating": 1470,
+        "isUpset": true,
+        "ratingDiff": -1383,
+        "upsets": {
+          "against": 1,
+          "beaten": 0,
+          "unexpectedWins": 0
+        }
+      },
+      "analysis": {
+        "accuracy": 68.5,
+        "blunders": [
+          {
+            "move": 17,
+            "san": "Na5",
+            "comment": "马跳得太深，被对手围剿",
+            "evalLoss": 1.8,
+            "bestMove": "Nc3",
+            "severity": "high",
+            "reasoning": "这步跳马太激进。作为 1470 分棋手，你的计算能力(战术分883)还有提升空间。对手是 2850 分的世界冠军，这种深入敌阵的马很容易被围死。建议走 Nc3 保持子力联系。"
+          }
+        ],
+        "mistakes": [
+          {
+            "move": 22,
+            "san": "Rxd5",
+            "comment": "兑换子力后局面被动",
+            "evalLoss": 0.9,
+            "severity": "medium",
+            "reasoning": "兑换后你的 d5 兵成为目标。对手利用这个弱点制造了攻势。"
+          }
+        ],
+        "brilliants": [],
+        "inaccuracies": [
+          {
+            "move": 13,
+            "san": "Kxc1",
+            "comment": "吃兵前应该先观察全局",
+            "evalLoss": 0.3,
+            "severity": "low"
+          }
+        ],
+        "opening": "Sicilian Defense",
+        "eco": "B21",
+        "openingAccuracy": 0.78,
+        "middlegameAccuracy": 0.62,
+        "endgameAccuracy": 0.45
+      },
+      "review": {
+        "markdown": "## 🏆 对局复盘：vs MagnusCarlsen\n\n### 📊 基本信息\n| 项目 | 数据 |\n|------|------|\n| 结果 | ❌ 负 (0-1) |\n| 你的 Rating | 1470 |\n| 对手 Rating | 2850 |\n| 时间控制 | 15+10 |\n| 你的准确率 | 68.5% |\n\n### 🔴 主要失误\n\n**第17步 - Na5** (高阶失误)\n- 你的走法: 马跳 a5\n- 推荐走法: Nc3\n- 问题: 马太深，容易被围\n- 解释: 你的战术分(883)显示计算深度有限，建议走 Nc3 保持子力联系\n\n### 📈 能力雷达\n\n```\n开局   ★★★★☆  (0.78)\n中盘   ★★★☆☆  (0.62)\n残局   ★★☆☆☆  (0.45)\n防守   ★★☆☆☆  (0.52)\n进攻   ★★★☆☆  (0.68)\n```\n\n### 💡 针对性建议\n\n根据你的战绩(胜率48%)和战术分(883)，建议：\n\n1. **减少激进着法** - 你的战术能力(883)更适合稳重的局面战\n2. **注意子力协调** - 这盘棋子力联系被打断\n3. **开局要更扎实** - 你的 rapid 胜率比 blitz 高 15%，说明慢棋更适合你\n\n### 🎯 下一局练习\n\n建议做 5 道 **中局战术题**（难度 1000-1200），重点练习**子力协调**。",
+        "html": "<div class=\"review-card\">...</div>"
+      },
+      "gamification": {
+        "xpGained": 12,
+        "xpBreakdown": {
+          "baseReview": 5,
+          "accuracyBonus": 2,
+          "upsetBonus": 5,
+          "lessonCompleted": 0
+        },
+        "newTitles": [],
+        "newAchievements": [
+          {
+            "id": "upset_loss",
+            "name": "虽败犹荣",
+            "description": "输给比自己高1000分的对手",
+            "icon": "🏆",
+            "rarity": "rare"
+          }
+        ],
+        "radarData": {
+          "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+          "values": [4, 3, 2, 2, 3]
+        },
+        "streakInfo": {
+          "current": 2,
+          "type": "loss",
+          "trend": "concerning"
+        }
+      },
+      "chessAnalyst": {
+        "summary": "这盘棋你执黑对阵世界冠军，进行了24回合。对手在中盘制造了决定性的战术打击。你的问题主要集中在第17步的马跳太过激进，以及后续子力协调出现问题。",
+        "keyMistakes": [
+          {
+            "move": 17,
+            "description": "马跳 a5 太深",
+            "originalMove": "Na5",
+            "suggestedMove": "Nc3",
+            "reason": "你的战术评分883说明计算深度有限，深入敌阵的马容易被围。建议走 Nc3 保持子力联系和控制中心。"
+          },
+          {
+            "move": 22,
+            "description": "兑换后局面被动",
+            "originalMove": "Rxd5",
+            "suggestedMove": "Be6",
+            "reason": "兑换后 d5 兵成为弱点。对手利用这个格制造了攻势。"
+          }
+        ],
+        "bestMoves": [
+          {
+            "move": 8,
+            "san": "Nc3",
+            "reason": "这步棋保持了子力联系，为后续反击留下空间。"
+          }
+        ],
+        "openingInsight": "Sicilian Defense 是对抗 e4 的经典选择。你在开局阶段表现不错(准确率78%)，但在转化优势时出了问题。",
+        "todayLesson": "面对强敌时，稳守反击比正面进攻更有效。你的 blitz 胜率(40%)低于 rapid(48%)，说明你有时间压力时更容易出错。",
+        "personalizedAdvice": {
+          "basedOn": "你的 rapid 战绩(23胜34负)、战术分(883)和对手Rating(2850)",
+          "keyPoint": "对上高分对手时，减少激进着法，发挥你擅长的局面战",
+          "exercises": [
+            {
+              "type": "tactics",
+              "difficulty": "1000-1200",
+              "focus": "子力协调",
+              "count": 5
+            },
+            {
+              "type": "puzzle",
+              "difficulty": "1100",
+              "focus": "防守技巧",
+              "count": 3
+            }
+          ]
+        }
+      }
+    },
+    "requestId": "req_full_review_001"
+  }
+}
