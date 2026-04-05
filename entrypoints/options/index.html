@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Coach - 设置</title>
+  <link rel="stylesheet" href="./styles/options.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="logo">♟️</span>
+      <h1>Chess Coach 设置</h1>
+    </div>
+
+    <form id="config-form">
+      <div class="form-group">
+        <label for="username">chess.com 用户名</label>
+        <input type="text" id="username" placeholder="例如: aaronwang2026" required />
+      </div>
+
+      <div class="form-group">
+        <label>分析模式</label>
+        <div class="radio-group">
+          <label class="radio-item selected" data-value="chess-com">
+            <input type="radio" name="analysisMode" value="chess-com" checked />
+            <div class="radio-content">
+              <div class="radio-title">chess.com 分析数据（推荐）</div>
+              <div class="radio-desc">从 chess.com 获取评估和失误标记</div>
+            </div>
+          </label>
+
+          <label class="radio-item" data-value="local-rules">
+            <input type="radio" name="analysisMode" value="local-rules" />
+            <div class="radio-content">
+              <div class="radio-title">本地规则分析</div>
+              <div class="radio-desc">使用预设规则检测常见错误</div>
+            </div>
+          </label>
+
+          <label class="radio-item" data-value="ai">
+            <input type="radio" name="analysisMode" value="ai" />
+            <div class="radio-content">
+              <div class="radio-title">AI 智能分析</div>
+              <div class="radio-desc">使用 LLM 生成个性化分析和建议</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="api-key-group" id="api-key-group" style="display: none;">
+          <label for="apiKey">API Key <span style="color: #ef4444;">*</span></label>
+          <input type="password" id="apiKey" placeholder="sk-xxx..." />
+          <div class="api-key-hint" style="color: #ef4444;">⚠️ AI 智能分析必须填写 API Key</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">保存配置</button>
+
+      <div id="message" class="message" style="display: none;"></div>
+    </form>
+
+    <button id="btn-back" class="btn btn-secondary">返回</button>
+  </div>
+
+  <script src="./main.ts"></script>
+</body>
+</html>

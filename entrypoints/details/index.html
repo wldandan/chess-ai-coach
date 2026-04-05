@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Coach - 复盘明细</title>
+  <link rel="stylesheet" href="./styles/details.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="logo">♟️</span>
+      <div class="header-text">
+        <h1>复盘明细</h1>
+        <p class="subtitle">Chess Coach</p>
+      </div>
+      <button id="btn-back" class="btn-back">← 返回</button>
+    </div>
+
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>加载复盘数据...</p>
+    </div>
+
+    <div id="content" class="content" style="display: none;">
+      <!-- 用户信息 -->
+      <div class="user-section">
+        <div class="user-info">
+          <span class="user-badge" id="username"></span>
+          <span class="title-badge" id="title"></span>
+        </div>
+        <div class="stats-row">
+          <div class="stat-item accuracy">
+            <span class="stat-value" id="accuracy"></span>
+            <span class="stat-label">准确率</span>
+          </div>
+          <div class="stat-item xp">
+            <span class="stat-value" id="xp"></span>
+            <span class="stat-label">经验值</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 整体评估 -->
+      <div class="section">
+        <h2 class="section-title">📊 整体评估</h2>
+        <div class="assessment-card" id="overall-assessment"></div>
+      </div>
+
+      <!-- 优势分析 -->
+      <div class="section">
+        <h2 class="section-title">💪 优势</h2>
+        <ul class="strengths-list" id="strengths"></ul>
+      </div>
+
+      <!-- 薄弱之处 -->
+      <div class="section">
+        <h2 class="section-title">⚠️ 薄弱之处</h2>
+        <ul class="weaknesses-list" id="weaknesses"></ul>
+      </div>
+
+      <!-- 关键失误 -->
+      <div class="section">
+        <h2 class="section-title">🔴 关键失误</h2>
+        <div class="mistakes-list" id="mistakes"></div>
+      </div>
+
+      <!-- 改进建议 -->
+      <div class="section">
+        <h2 class="section-title">💡 改进建议</h2>
+        <ul class="tips-list" id="tips"></ul>
+      </div>
+
+      <!-- 妙着展示 -->
+      <div class="section" id="brilliants-section" style="display: none;">
+        <h2 class="section-title">✨ 妙着赏析</h2>
+        <div class="brilliants-list" id="brilliants"></div>
+      </div>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-icon">📋</div>
+      <p>暂无复盘数据</p>
+      <p class="empty-hint">请先在 popup 中进行一次复盘分析</p>
+    </div>
+
+    <div id="error" class="error-state" style="display: none;">
+      <div class="error-icon">⚠️</div>
+      <p id="error-message"></p>
+      <button class="btn" id="btn-retry">重试</button>
+    </div>
+  </div>
+
+  <script src="./main.ts"></script>
+</body>
+</html>

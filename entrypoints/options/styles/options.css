@@ -1,0 +1,217 @@
+/* ============================================
+   Chess Coach - Settings Page
+   ============================================ */
+
+:root {
+  --bg-primary: #0d0d1a;
+  --bg-secondary: #151528;
+  --bg-card: #1a1a2e;
+  --bg-input: #12121f;
+
+  --neon-cyan: #00f5ff;
+  --neon-pink: #ff00ff;
+  --neon-green: #39ff14;
+  --neon-yellow: #ffff00;
+  --neon-red: #ff3131;
+
+  --text-primary: #ffffff;
+  --text-secondary: #b8b8d0;
+  --text-muted: #6b6b8a;
+
+  --gradient-gold: linear-gradient(135deg, #ffd700, #ff8c00);
+  --gradient-cyber: linear-gradient(135deg, #00f5ff, #bf00ff);
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: var(--space-lg);
+}
+
+.container {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  max-width: 480px;
+  margin: 0 auto;
+  border: 2px solid var(--neon-cyan);
+  box-shadow: 0 0 30px rgba(0, 245, 255, 0.15);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.logo {
+  font-size: 2.5rem;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.form-group {
+  margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--bg-input);
+  border: 2px solid var(--neon-cyan);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.radio-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.radio-item:hover {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 245, 255, 0.05);
+}
+
+.radio-item.selected {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 245, 255, 0.1);
+}
+
+.radio-item input {
+  margin-top: 3px;
+}
+
+.radio-content {
+  flex: 1;
+}
+
+.radio-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.radio-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.api-key-group {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid var(--neon-yellow);
+  border-radius: var(--radius-md);
+}
+
+.api-key-hint {
+  font-size: 0.8rem;
+  margin-top: var(--space-xs);
+}
+
+.btn {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--gradient-cyber);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: var(--space-md);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 245, 255, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  border: 2px solid var(--neon-pink);
+  color: var(--neon-pink);
+  margin-top: var(--space-sm);
+}
+
+.btn-secondary:hover {
+  background: var(--neon-pink);
+  color: white;
+}
+
+.message {
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.message.success {
+  background: rgba(57, 255, 20, 0.15);
+  border: 1px solid var(--neon-green);
+  color: var(--neon-green);
+}
+
+.message.error {
+  background: rgba(255, 49, 49, 0.15);
+  border: 1px solid var(--neon-red);
+  color: var(--neon-red);
+}
