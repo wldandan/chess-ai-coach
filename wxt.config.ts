@@ -18,6 +18,7 @@ export default defineConfig({
     action: {
       default_popup: 'popup/index.html',
     },
+    options_page: 'options/index.html',
   },
 
   // Dev server config

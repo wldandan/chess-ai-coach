@@ -7,17 +7,20 @@
     "build": "wxt build",
     "preview": "wxt preview",
     "api": "node src/api/server.js",
-    "api:mock": "node src/api/mock-server.js"
+    "api:mock": "node src/api/mock-server.js",
+    "gateway": "node src/api/gateway.js"
   },
   "dependencies": {
     "chess.js": "^1.0.0",
     "stockfish": "^16.0.0",
-    "stockfish.js": "^10.0.2"
+    "stockfish.js": "^10.0.2",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.5.10",
     "@wxt-dev/module-react": "^1.2.2",
     "express": "^4.21.0",
     "react": "^19.2.4",
