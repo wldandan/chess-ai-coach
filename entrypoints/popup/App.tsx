@@ -30,9 +30,15 @@ export default function App() {
       if (result[CONFIG_KEY]) {
         setConfig(result[CONFIG_KEY]);
         setUsername(result[CONFIG_KEY].username || '');
+      } else {
+        // 默认配置
+        const defaultConfig: UserConfig = { username: '', analysisMode: 'chess-com', apiKey: '' };
+        setConfig(defaultConfig);
+        await browser.storage.local.set({ [CONFIG_KEY]: defaultConfig });
       }
     } catch (err) {
       console.error('Failed to load config:', err);
+      setConfig({ username: '', analysisMode: 'chess-com', apiKey: '' });
     }
   }
 
@@ -41,25 +47,40 @@ export default function App() {
     setConfig(newConfig);
   }
 
+  // 演示模式 - 直接生成 mock 数据
+  const handleDemoMode = async (user: string) => {
+    setUsername(user);
+    setIsLoading(true);
+    setError(null);
+    setReviewResult(null);
+
+    await saveConfig({ ...config!, username: user });
+
+    // 模拟加载延迟
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const demoResult = generateMockResult(user);
+    setReviewResult(demoResult);
+    setIsLoading(false);
+  };
+
   const handleAnalyze = async (user: string) => {
     setUsername(user);
     setIsLoading(true);
     setError(null);
     setReviewResult(null);
 
-    // 保存用户名
     await saveConfig({ ...config!, username: user });
 
     try {
-      // 获取当前 tab
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
 
       if (!tab.id || !tab.url?.includes('chess.com')) {
-        throw new Error('请在 chess.com 棋局页面使用此插件');
+        throw new Error('NOT_CHESS_COM');
       }
 
       if (!tab.url?.includes('/game/')) {
-        throw new Error('请打开一个棋局页面');
+        throw new Error('NOT_GAME_PAGE');
       }
 
       // 发送消息给 content script
@@ -83,28 +104,33 @@ export default function App() {
         pgnLength: response.pgn?.length,
       });
 
-      // 模拟分析结果（实际应该调用后端 API）
-      const mockResult = generateMockResult(user, response.pgn);
+      // 有真实 PGN 时可以用 mock 数据模拟分析
+      const mockResult = generateMockResult(user);
       setReviewResult(mockResult);
 
     } catch (error: any) {
       console.error('Analysis failed:', error);
       const errorMsg = error.message || '获取棋局失败';
 
-      if (errorMsg.includes('Receiving end does not exist')) {
-        setError('请刷新 chess.com 页面后重试（扩展更新后需要刷新页面）');
+      if (errorMsg === 'NOT_CHESS_COM') {
+        setError('请在 chess.com 棋局页面点击分析');
+      } else if (errorMsg === 'NOT_GAME_PAGE') {
+        setError('请打开一个棋局页面后再分析');
+      } else if (errorMsg.includes('Receiving end does not exist')) {
+        setError('请刷新 chess.com 页面后重试');
       } else {
         setError(errorMsg);
       }
 
-      // 演示模式下显示 mock 数据
-      setReviewResult(generateMockResult(user, null));
+      // 出错时也显示 mock 结果作为演示
+      const mockResult = generateMockResult(user);
+      setReviewResult(mockResult);
     } finally {
       setIsLoading(false);
     }
   };
 
-  function generateMockResult(user: string, _pgn: string | null): ReviewResult {
+  function generateMockResult(user: string): ReviewResult {
     const accuracies = [78.5, 82.3, 85.1, 88.7, 91.2, 76.4, 89.3];
     const accuracy = accuracies[Math.floor(Math.random() * accuracies.length)];
     const blunders = Math.floor(Math.random() * 4);
@@ -170,7 +196,11 @@ export default function App() {
         {isLoading && <LoadingScreen username={username} />}
 
         {!isLoading && !reviewResult && (
-          <UsernameInput onAnalyze={handleAnalyze} />
+          <UsernameInput
+            onAnalyze={handleAnalyze}
+            onDemoMode={handleDemoMode}
+            savedUsername={username}
+          />
         )}
 
         {!isLoading && reviewResult && (

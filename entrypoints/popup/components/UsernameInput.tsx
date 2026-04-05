@@ -2,15 +2,21 @@ import React, { useState } from 'react';
 
 interface Props {
   onAnalyze: (username: string) => void;
+  onDemoMode: (username: string) => void;
+  savedUsername?: string;
 }
 
-export function UsernameInput({ onAnalyze }: Props) {
-  const [inputValue, setInputValue] = useState('');
+export function UsernameInput({ onAnalyze, onDemoMode, savedUsername = '' }: Props) {
+  const [inputValue, setInputValue] = useState(savedUsername);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent, mode: 'analyze' | 'demo') => {
     e.preventDefault();
     if (inputValue.trim()) {
-      onAnalyze(inputValue.trim());
+      if (mode === 'demo') {
+        onDemoMode(inputValue.trim());
+      } else {
+        onAnalyze(inputValue.trim());
+      }
     }
   };
 
@@ -22,7 +28,7 @@ export function UsernameInput({ onAnalyze }: Props) {
         <p>输入你的 chess.com 用户名</p>
       </div>
 
-      <form className="input-form" onSubmit={handleSubmit}>
+      <form className="input-form" onSubmit={(e) => handleSubmit(e, 'analyze')}>
         <div className="input-wrapper">
           <span className="input-prefix">@</span>
           <input
@@ -39,6 +45,18 @@ export function UsernameInput({ onAnalyze }: Props) {
           🔍 开始分析
         </button>
       </form>
+
+      <div className="demo-section">
+        <p className="demo-label">或先体验演示模式：</p>
+        <button
+          type="button"
+          className="btn-demo"
+          onClick={(e) => handleSubmit(e, 'demo')}
+          disabled={!inputValue.trim()}
+        >
+          ⚡ 快速体验
+        </button>
+      </div>
 
       <div className="features-hint">
         <div className="hint-item">

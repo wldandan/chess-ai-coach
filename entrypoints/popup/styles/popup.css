@@ -273,6 +273,45 @@ body {
 }
 
 /* ============================================
+   Demo Mode
+   ============================================ */
+.demo-section {
+  text-align: center;
+  padding: var(--space-md) 0;
+  border-top: 1px dashed rgba(0, 245, 255, 0.2);
+  margin-top: var(--space-sm);
+}
+
+.demo-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.btn-demo {
+  background: transparent;
+  border: 2px dashed var(--neon-yellow);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-lg);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--neon-yellow);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-demo:hover:not(:disabled) {
+  background: rgba(255, 255, 0, 0.1);
+  border-style: solid;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.3);
+}
+
+.btn-demo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================
    Loading Screen
    ============================================ */
 .loading-screen {
