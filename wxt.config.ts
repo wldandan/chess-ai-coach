@@ -2,7 +2,10 @@ import { defineConfig } from 'wxt';
 
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
-  
+
+  // Output directory
+  outDir: 'output',
+
   manifest: {
     name: '🏆 Chess Coach - AI 复盘助手',
     description: 'AI 国际象棋复盘工具，为 14 岁青少年打造的游戏化学习体验',
