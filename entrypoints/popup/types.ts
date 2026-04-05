@@ -15,4 +15,6 @@ export interface UserConfig {
   username: string;
   analysisMode: 'chess-com' | 'local-rules' | 'ai';
   apiKey: string;
+  agentUrl: string;
+  provider?: 'openclaw' | 'opencode';
 }
