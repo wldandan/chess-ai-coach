@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { ReviewCard } from './components/ReviewCard';
-import { UsernameInput } from './components/UsernameInput';
 import { LoadingScreen } from './components/LoadingScreen';
+import { Settings } from './components/Settings';
 import type { ReviewResult } from './types';
 import './styles/popup.css';
 
 const CONFIG_KEY = 'chess_coach_config';
+const REVIEW_DATA_KEY = 'chess_coach_last_review';
 
 interface UserConfig {
   username: string;
   analysisMode: 'chess-com' | 'local-rules' | 'ai';
   apiKey: string;
+  agentUrl: string;
+  provider?: 'openclaw' | 'opencode';
 }
 
 export default function App() {
-  const [username, setUsername] = useState('');
   const [config, setConfig] = useState<UserConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     loadConfig();
@@ -29,16 +32,21 @@ export default function App() {
       const result = await browser.storage.local.get(CONFIG_KEY);
       if (result[CONFIG_KEY]) {
         setConfig(result[CONFIG_KEY]);
-        setUsername(result[CONFIG_KEY].username || '');
+        // 如果没有用户名，自动打开设置页面
+        if (!result[CONFIG_KEY].username) {
+          setShowSettings(true);
+        }
       } else {
         // 默认配置
-        const defaultConfig: UserConfig = { username: '', analysisMode: 'chess-com', apiKey: '' };
+        const defaultConfig: UserConfig = { username: 'aaronwang2026', analysisMode: 'chess-com', apiKey: '', agentUrl: '', provider: 'openclaw' };
         setConfig(defaultConfig);
         await browser.storage.local.set({ [CONFIG_KEY]: defaultConfig });
+        setShowSettings(false);
       }
     } catch (err) {
       console.error('Failed to load config:', err);
-      setConfig({ username: '', analysisMode: 'chess-com', apiKey: '' });
+      setConfig({ username: 'aaronwang2026', analysisMode: 'chess-com', apiKey: '', agentUrl: '', provider: 'openclaw' });
+      setShowSettings(true);
     }
   }
 
@@ -47,30 +55,56 @@ export default function App() {
     setConfig(newConfig);
   }
 
+  async function saveReviewResult(result: ReviewResult) {
+    await browser.storage.local.set({ [REVIEW_DATA_KEY]: result });
+  }
+
+  // 调用 Gateway API
+  async function callGateway(action: string, data: { pgn?: string; username?: string; userId?: string; limit?: number }) {
+    if (!config?.agentUrl) {
+      throw new Error('请先配置 API 地址');
+    }
+
+    const url = `${config.agentUrl}/api/chess-coach`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({ action, ...data, provider: config.provider || 'openclaw' }),
+    });
+
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || '请求失败');
+    }
+    return result.data;
+  }
+
   // 演示模式 - 直接生成 mock 数据
-  const handleDemoMode = async (user: string) => {
-    setUsername(user);
+  const handleDemoMode = async () => {
+    if (!config?.username) return;
+
     setIsLoading(true);
     setError(null);
     setReviewResult(null);
-
-    await saveConfig({ ...config!, username: user });
 
     // 模拟加载延迟
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const demoResult = generateMockResult(user);
+    const demoResult = generateMockResult(config.username);
+    await saveReviewResult(demoResult);
     setReviewResult(demoResult);
     setIsLoading(false);
   };
 
-  const handleAnalyze = async (user: string) => {
-    setUsername(user);
+  const handleAnalyze = async () => {
+    if (!config?.username) return;
+
     setIsLoading(true);
     setError(null);
     setReviewResult(null);
-
-    await saveConfig({ ...config!, username: user });
 
     try {
       const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
@@ -104,9 +138,41 @@ export default function App() {
         pgnLength: response.pgn?.length,
       });
 
-      // 有真实 PGN 时可以用 mock 数据模拟分析
-      const mockResult = generateMockResult(user);
-      setReviewResult(mockResult);
+      // 调用 gateway 分析棋局
+      if (config.agentUrl) {
+        try {
+          const analysisResult = await callGateway('analyze', {
+            pgn: response.pgn,
+            userId: config.username,
+          });
+          console.log('[Popup] Gateway result:', analysisResult);
+
+          // 转换 gateway 返回结果为 ReviewResult 格式
+          const result: ReviewResult = {
+            username: config.username,
+            accuracy: analysisResult.accuracy || 85,
+            blunders: analysisResult.blunders || 0,
+            brilliants: analysisResult.brilliants || 0,
+            mistakes: analysisResult.mistakes || 0,
+            xp: analysisResult.xp || 50,
+            title: analysisResult.title || '初出茅庐',
+            gameUrl: response.url,
+          };
+          await saveReviewResult(result);
+          setReviewResult(result);
+        } catch (apiError: any) {
+          console.error('[Popup] Gateway API failed, using mock:', apiError);
+          // Gateway 调用失败时使用 mock
+          const mockResult = generateMockResult(config.username);
+          await saveReviewResult(mockResult);
+          setReviewResult(mockResult);
+        }
+      } else {
+        // 没有配置 API 地址时使用 mock
+        const mockResult = generateMockResult(config.username);
+        await saveReviewResult(mockResult);
+        setReviewResult(mockResult);
+      }
 
     } catch (error: any) {
       console.error('Analysis failed:', error);
@@ -123,7 +189,8 @@ export default function App() {
       }
 
       // 出错时也显示 mock 结果作为演示
-      const mockResult = generateMockResult(user);
+      const mockResult = generateMockResult(config.username);
+      await saveReviewResult(mockResult);
       setReviewResult(mockResult);
     } finally {
       setIsLoading(false);
@@ -166,6 +233,15 @@ export default function App() {
     setError(null);
   };
 
+  const handleOpenSettings = () => {
+    setShowSettings(true);
+  };
+
+  const handleSaveSettings = async (newConfig: UserConfig) => {
+    await saveConfig(newConfig);
+    setShowSettings(false);
+  };
+
   const modeText: Record<string, string> = {
     'chess-com': 'chess.com',
     'local-rules': '本地规则',
@@ -177,6 +253,7 @@ export default function App() {
       <header className="popup-header">
         <h1>🏆 Chess Coach</h1>
         <p className="subtitle">AI 复盘助手</p>
+        <button className="btn-settings" onClick={handleOpenSettings} title="设置">⚙️</button>
         {config?.username && (
           <div className="config-status">
             <span className="config-badge">@{config.username}</span>
@@ -186,40 +263,60 @@ export default function App() {
       </header>
 
       <main className="popup-main">
-        {error && (
+        {showSettings && config && (
+          <Settings
+            config={config}
+            onSave={handleSaveSettings}
+            onCancel={() => {
+              // 如果没有用户名，禁止关闭设置
+              if (!config.username) return;
+              setShowSettings(false);
+            }}
+          />
+        )}
+
+        {!showSettings && error && (
           <div className="error-message">
             <span className="error-icon">⚠️</span>
             <span className="error-text">{error}</span>
           </div>
         )}
 
-        {isLoading && <LoadingScreen username={username} />}
+        {!showSettings && isLoading && <LoadingScreen username={config?.username || ''} />}
 
-        {!isLoading && !reviewResult && (
-          <UsernameInput
-            onAnalyze={handleAnalyze}
-            onDemoMode={handleDemoMode}
-            savedUsername={username}
-          />
+        {!showSettings && !isLoading && !reviewResult && config?.username && (
+          <div className="action-buttons">
+            <button className="btn-primary analyze-btn" onClick={handleAnalyze}>
+              🎯 分析棋局
+            </button>
+            <div className="demo-section">
+              <span className="demo-label">或者</span>
+              <button className="btn-demo" onClick={handleDemoMode}>
+                ✨ 演示模式
+              </button>
+            </div>
+          </div>
         )}
 
-        {!isLoading && reviewResult && (
+        {!showSettings && !isLoading && reviewResult && (
           <ReviewCard result={reviewResult} onReset={handleReset} />
         )}
       </main>
 
-      <footer className="popup-footer">
-        <span>💡 右键点击 chess.com 页面可快速启动复盘</span>
-        <a
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            handleReset();
-          }}
-        >
-          重置
-        </a>
-      </footer>
+      {!showSettings && (
+        <footer className="popup-footer">
+          <span>💡 右键点击 chess.com 页面可快速启动复盘</span>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              handleReset();
+            }}
+          >
+            重置
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

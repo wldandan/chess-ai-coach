@@ -65,6 +65,11 @@ export function ReviewCard({ result, onReset }: Props) {
       </div>
 
       <div className="card-footer">
+        <button className="btn-secondary" onClick={() => {
+          window.open(chrome.runtime.getURL('details.html'), '_blank');
+        }}>
+          📋 查看明细
+        </button>
         <button className="btn-secondary" onClick={onReset}>
           🔄 重新分析
         </button>
