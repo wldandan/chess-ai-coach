@@ -217,6 +217,7 @@ function extractPgnFromPage(): string | null {
  * 检查是否在游戏结束页面
  */
 function isGameOverPage(): boolean {
+  if (!window?.location?.hostname) return false;
   if (window.location.hostname.includes('chess.com')) {
     return /https:\/\/www\.chess\.com\/game\/\w+\/\d+/.test(window.location.href);
   } else if (window.location.hostname.includes('lichess')) {
@@ -225,44 +226,50 @@ function isGameOverPage(): boolean {
   return false;
 }
 
-// 监听来自 background/popup 的消息
-browser.runtime.onMessage.addListener((message: ChromeMessage, _sender, sendResponse) => {
-  console.log('[Chess Coach] Content received message:', message.type);
+export default {
+  matches: ['*://*.chess.com/*', '*://*.lichess.org/*'],
 
-  if (message.type === 'GET_GAME') {
-    const isAnalysisPage = window.location.href.includes('/analysis/');
-    console.log('[Chess Coach] Is analysis page:', isAnalysisPage);
+  main() {
+    console.log('[Chess Coach] Content script loaded on', window.location?.href || 'unknown');
 
-    if (!isAnalysisPage && !isGameOverPage()) {
-      sendResponse({
-        type: 'ERROR',
-        payload: '请在游戏结束页面或分析页面使用此功能',
-      } as ChromeMessage);
+    // 监听来自 popup 的消息
+    chrome.runtime.onMessage.addListener((message: ChromeMessage, _sender, sendResponse) => {
+      console.log('[Chess Coach] Content received message:', message.type);
+
+      if (message.type === 'GET_GAME') {
+        const isAnalysisPage = window.location.href.includes('/analysis/');
+        console.log('[Chess Coach] Is analysis page:', isAnalysisPage);
+
+        if (!isAnalysisPage && !isGameOverPage()) {
+          sendResponse({
+            type: 'ERROR',
+            payload: '请在游戏结束页面或分析页面使用此功能',
+          } as ChromeMessage);
+          return true;
+        }
+
+        const pgnData = extractFromChessCom();
+        if (pgnData) {
+          console.log('[Chess Coach] Extracted PGN, length:', pgnData.pgn.length);
+          sendResponse({
+            success: true,
+            pgn: pgnData.pgn,
+            url: pgnData.url,
+            gameId: pgnData.gameId,
+          });
+        } else {
+          sendResponse({
+            type: 'ERROR',
+            payload: '无法提取棋局数据，请确保页面已完全加载',
+          } as ChromeMessage);
+        }
+      }
+
       return true;
+    });
+
+    if (isGameOverPage()) {
+      console.log('[Chess Coach] Game over page detected');
     }
-
-    const pgnData = extractFromChessCom();
-    if (pgnData) {
-      console.log('[Chess Coach] Extracted PGN, length:', pgnData.pgn.length);
-      sendResponse({
-        success: true,
-        pgn: pgnData.pgn,
-        url: pgnData.url,
-        gameId: pgnData.gameId,
-      });
-    } else {
-      sendResponse({
-        type: 'ERROR',
-        payload: '无法提取棋局数据，请确保页面已完全加载',
-      } as ChromeMessage);
-    }
-  }
-
-  return true;
-});
-
-console.log('[Chess Coach] Content script loaded on', window.location.href);
-
-if (isGameOverPage()) {
-  console.log('[Chess Coach] Game over page detected');
-}
+  },
+};
