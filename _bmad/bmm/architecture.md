@@ -2,39 +2,65 @@
 stepsCompleted: ["step-01-init", "step-02-discovery", "step-02b-vision", "step-02c-executive-summary", "step-03-success", "step-04-journeys", "step-05-domain", "step-06-innovation", "step-07-project-type", "step-08-scoping", "step-09-functional", "step-10-nonfunctional", "step-11-polish", "step-12-complete"]
 workflowType: 'architecture'
 classification:
-  projectType: Chrome Extension (WXT + OpenClaw)
+  projectType: Chrome Extension (WXT + OpenClaw/OpenCode)
   domain: Education / Gaming (Chess Learning)
   complexity: Medium
-  projectContext: Existing (v2.2)
+  projectContext: Existing (v5.0)
 ---
 
 # Architecture Decision Document - Chess Coach
 
-_This document reflects the current Chess Coach v2.2 implementation._
+_This document reflects the current Chess Coach v5.0 implementation._
 
 ## Project Context
+
+### Directory Structure
+
+```
+chess-ai-coach/
+│
+├── chrome-extension/           # Chrome 插件
+│   ├── entrypoints/          #   popup, options, content, details
+│   ├── src/                  #   gamification, shared
+│   ├── .wxt/                #   WXT 配置
+│   └── package.json
+│
+├── api-server/               # API 服务
+│   ├── src/
+│   │   └── gateway.ts       #   HTTP 网关（唯一入口）
+│   └── package.json
+│
+└── agents/                  # Agent SKILL.md 定义
+    ├── chess-orchestrator/
+    ├── chess-engine/
+    ├── chess-analyst/
+    ├── chess-crawler/
+    ├── chess-reviewer/
+    └── chess-gamification/
+```
 
 ### Requirements Overview
 
 **Functional Requirements:**
-- **Chrome 插件 UI** (3个): 右键菜单、新标签页展示、游戏化复盘卡片
-- **API 网关** (1个): chess-orchestrator 统一入口
-- **棋局分析** (4个): PGN 解析、Stockfish 引擎分析、Top N 提升点识别、最佳走法建议
+- **Chrome 插件 UI** (3个): 右键菜单、popup 展示、游戏化复盘卡片
+- **API 网关** (1个): Gateway 统一入口，路由到 OpenClaw/OpenCode
+- **棋局分析** (4个): PGN 解析、Stockfish 引擎分析、漏着/妙着识别、最佳走法建议
 - **LLM 解释** (2个): 趣味评语生成、儿童友好语言
 - **游戏化系统** (4个): XP 经验值、称号成就、雷达图能力分析
 
 **Non-Functional Requirements:**
 - 性能：插件即点即用，分析响应 < 10秒
 - 可访问性：WCAG 2.1 AA 基础标准
-- 集成：chess.com 页面兼容、OpenClaw Agent 系统
+- 集成：chess.com 页面兼容、OpenClaw/OpenCode Agent 系统
 
 ### Technical Stack
 
 | 层级 | 技术 |
 |------|------|
 | Chrome 插件框架 | WXT (MV3) |
-| API 网关 | chess-orchestrator |
-| Multi-Agent 系统 | OpenClaw |
+| API 网关 | gateway.ts (TypeScript) |
+| Multi-Agent 系统 | OpenClaw / OpenCode |
+| Agent 定义 | SKILL.md (纯定义，无实现) |
 | 棋谱解析 | chess.js |
 | 引擎分析 | Stockfish WASM |
 | 数据存储 | chrome.storage.local |
@@ -46,106 +72,70 @@ _This document reflects the current Chess Coach v2.2 implementation._
 ### High-Level System Diagram
 
 ```
-Chrome 插件 (WXT)                      OpenClaw Gateway
-    │                                         │
-    │  POST /api/chess-coach                  │
-    │─────────────────────────────────────────▶│
-    │                                          │
-    │◀─────────────────────────────────────────│
-    │  { success, data, requestId }             │
-    │                                          │
-    │                                    ┌─────┴─────┐
-    │                                    │  chess-   │
-    │                                    │orchestrator│
-    │                                    │ (总管)    │
-    │                                    └─────┬─────┘
-    │                                          │
-    │                    ┌────────────────────┼────────────────────┐
-    │                    ▼                    ▼                    ▼
-    │              ┌──────────┐          ┌────────────┐       ┌─────────────┐
-    │              │  chess- │          │   chess-   │       │    chess-   │
-    │              │ crawler │─────────▶│  engine    │──────▶│  analyst    │
-    │              └──────────┘          └──────┬─────┘       └──────┬──────┘
-    │                                           │                    │
-    │                                           │                    │
-    │                                           │                    ▼
-    │                                           │            ┌─────────────┐
-    │                                           │            │    chess-   │
-    │                                           │            │  reviewer   │
-    │                                           │            └──────┬──────┘
-    │                                           │                   │
-    │                                           │                   │
-    │                                           │                   ▼
-    │                                           │            ┌─────────────┐
-    │                                           │            │    chess-   │
-    │                                           │            │gamification │
-    │                                           │            └─────────────┘
-    └───────────────────────────────────────────┴─────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                    Chess Coach Chrome Extension                                 │
+│                           (chrome-extension/)                                  │
+│                                      │                                           │
+│                                      │ POST /api/chess-coach                    │
+│                                      │ Authorization: Bearer <API_KEY>           │
+│                                      ▼                                           │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                          Gateway (:18790)                                      │
+│                          (api-server/src/gateway.ts)                           │
+│                                      │                                           │
+│                    ┌─────────────────┴─────────────────┐                      │
+│                    │                               │                          │
+│              ┌─────▼─────┐                   ┌─────▼─────┐                    │
+│              │ OpenClaw  │                   │  OpenCode │                    │
+│              │(WebSocket)│                   │   (HTTP)  │                    │
+│              │  :18789   │                   │   API     │                    │
+│              └─────┬─────┘                   └─────┬─────┘                    │
+│                    │                               │                          │
+│                    └───────────────┬───────────────┘                          │
+│                                    ▼                                          │
+│                              agents/*.SKILL.md                                 │
+│                                    │                                           │
+│              ┌─────────────────────┼─────────────────────┐                    │
+│              ▼                     ▼                     ▼                    │
+│        ┌──────────┐          ┌────────────┐       ┌─────────────┐            │
+│        │  chess-  │          │   chess-   │       │    chess-   │            │
+│        │  engine  │          │  analyst   │       │  reviewer   │            │
+│        └──────────┘          └────────────┘       └─────────────┘            │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Agent 分工
+### Component Responsibilities
 
-| Agent | 职责 | 入口 |
+| 组件 | 目录 | 职责 |
+|------|------|------|
+| Chrome Extension | `chrome-extension/` | 插件 UI（popup, content script） |
+| API Gateway | `api-server/src/gateway.ts` | HTTP 入口，路由到 OpenClaw/OpenCode |
+| Agents | `agents/*.SKILL.md` | Agent 能力定义（运行时由 OpenClaw/OpenCode 读取） |
+
+### Agent 定义 (SKILL.md only)
+
+| Agent | 职责 | 文件 |
 |-------|------|------|
-| `chess-orchestrator` | 对外 API 入口，调度内部 Agent | ✅ 核心入口 |
-| `chess-crawler` | chess.com 对局抓取 | 被 orchestrator 调用 |
-| `chess-engine` | Stockfish 漏着/妙着分析 | 被 orchestrator 调用 |
-| `chess-analyst` | AI 深度复盘分析（失误讲解、教学建议） | 被 orchestrator 调用 |
-| `chess-reviewer` | LLM 生成趣味复盘卡片 | 被 orchestrator 调用 |
-| `chess-gamification` | XP/称号/成就/雷达图系统 | 被 orchestrator 调用 |
+| `chess-orchestrator` | 编排入口，调度其他 Agent | SKILL.md |
+| `chess-engine` | Stockfish 漏着/妙着分析 | SKILL.md |
+| `chess-analyst` | AI 深度复盘分析（失误讲解、教学建议） | SKILL.md |
+| `chess-crawler` | chess.com 对局抓取 | SKILL.md |
+| `chess-reviewer` | LLM 生成趣味复盘卡片 | SKILL.md |
+| `chess-gamification` | XP/称号/成就/雷达图系统 | SKILL.md |
 
 ### Action 路由
 
-| action | 说明 | 链路 |
-|--------|------|------|
-| `analyze` | 分析 PGN | chess-engine → chess-analyst |
-| `crawl_user` | 抓取用户历史 | chess-crawler |
-| `full_review` | 完整复盘 | chess-engine → chess-analyst → chess-reviewer → chess-gamification |
+| Action | OpenClaw | OpenCode |
+|--------|----------|----------|
+| `analyze` | ✅ | ✅ |
+| `crawl_user` | ✅ | ❌ |
+| `full_review` | ✅ | ❌ |
 
 ---
 
 ## API Design
 
-### Internal API (Extension Components)
-
-#### BackgroundScript API
-
-```typescript
-// 右键菜单点击处理
-interface ContextMenuHandler {
-  onAnalyzeClick(info: MenuItemInfo, tab: Tab): Promise<void>;
-}
-
-// 消息传递接口
-interface MessageAPI {
-  // ContentScript -> Background
-  'GET_PGN': () => Promise<{ pgn: string; analysis: AnalysisData }>;
-
-  // Background -> ReactApp
-  'ANALYSIS_RESULT': { pgn: string; analysis: AnalysisData };
-  'ANALYSIS_ERROR': { error: string };
-}
-```
-
-#### React App Internal API
-
-```typescript
-// 分析流程状态机
-type ReviewState =
-  | 'idle'
-  | 'loading'
-  | 'analyzing'
-  | 'presenting'
-  | 'complete';
-
-// 核心服务
-interface ReviewService {
-  startReview(pgn: string): Promise<ReviewResult>;
-  getGameHistory(username: string): Promise<Game[]>;
-}
-```
-
-### External API (chess-orchestrator)
+### External API (Gateway)
 
 **入口**: `POST /api/chess-coach`
 
@@ -155,21 +145,16 @@ interface ReviewService {
   "action": "analyze" | "crawl_user" | "full_review",
   "pgn": "1.e4 e5 2.Nf3 Nc6",
   "userId": "xxx",
-  "username": "ChessKid"
+  "username": "ChessKid",
+  "provider": "openclaw" | "opencode"
 }
 
 // 响应格式
 {
   "success": true,
-  "data": {
-    "gameId": "game_xxx",
-    "gameInfo": { ... },
-    "analysis": { "accuracy": 82.5, "blunders": [...], "brilliants": [...] },
-    "review": { "markdown": "...", "html": "..." },
-    "gamification": { "xpGained": 8, "newTitles": [...], "radarData": {...} },
-    "chessAnalyst": { "summary": "...", "keyMistakes": [...], "bestMoves": [...], "todayLesson": "..." }
-  },
-  "requestId": "req_xxx"
+  "data": { ... },
+  "requestId": "req_xxx",
+  "provider": "openclaw"
 }
 ```
 
@@ -179,14 +164,13 @@ interface ReviewService {
 
 | 决策点 | 选择 | 理由 |
 |--------|------|------|
-| **框架** | WXT | 自动处理 manifest/Service Worker，HMR 支持，开发体验好 |
-| **React 架构** | 独立标签页 | 更好的隔离性，复杂的 UI 交互 |
+| **目录结构** | Monorepo (3部分) | chrome-extension / api-server / agents 分离 |
+| **Agent 实现** | 纯 SKILL.md | OpenClaw/OpenCode 运行时读取，不在项目内实现 |
+| **Gateway** | 单一入口 | 统一 HTTP 入口，路由到 OpenClaw 或 OpenCode |
+| **框架** | WXT | 自动处理 manifest/Service Worker，HMR 支持 |
 | **PGN 解析** | chess.js | 成熟的库，社区支持 |
-| **Multi-Agent** | OpenClaw | 模块化 Agent 协作，易扩展 |
-| **LLM 集成** | chess-reviewer Agent | 统一的趣味评语生成 |
-| **游戏化** | chess-gamification Agent | XP/称号/成就/雷达图 |
+| **Multi-Agent** | OpenClaw + OpenCode | 双路径支持，灵活切换 |
 | **存储** | chrome.storage.local | MV3 推荐，比 localStorage 更安全 |
-| **构建** | WXT 内置 | 自动生成 manifest，零配置 |
 
 ---
 
@@ -195,10 +179,11 @@ interface ReviewService {
 | 组件 | 状态 |
 |------|------|
 | WXT 脚手架 + UI | ✅ 完成 |
-| Mock API Server | ✅ 完成 |
+| API Gateway | ✅ 完成 |
 | Agent SKILL.md | ✅ 完成 |
-| 端到端 Mock 跑通 | ✅ 完成 |
-| chess-orchestrator (真实 OpenClaw) | ⏳ 待实现 |
+| 目录结构重组 (v5.0) | ✅ 完成 |
+| 端到端 Mock 测试 | ⏳ 待验证 |
+| 真实 OpenClaw/OpenCode 集成 | ⏳ 待接入 |
 | 真实 chess.com API | ⏳ 待接入 |
 | Stockfish WASM 引擎 | ⏳ 待集成 |
 
@@ -206,11 +191,13 @@ interface ReviewService {
 
 ## Next Steps
 
-1. **chess-orchestrator Agent**: 实现真实 OpenClaw 集成
-2. **插件安装测试**: 验证 WXT 构建 + 本地加载
-3. **真实 API 接入**: chess.com 认证/token
-4. **Stockfish 集成**: WASM 引擎对接
+1. **目录结构验证**: 确认三个部分独立可用
+2. **Gateway 测试**: 验证路由到 OpenClaw/OpenCode
+3. **插件安装测试**: 验证 WXT 构建 + 本地加载
+4. **Agent 集成**: OpenClaw/OpenCode 运行时对接
+5. **真实 API 接入**: chess.com 认证/token
+6. **Stockfish 集成**: WASM 引擎对接
 
 ---
 
-*版本：v2.2 | 更新：2026-04-04*
+*版本：v5.0 | 更新：2026-04-06*
