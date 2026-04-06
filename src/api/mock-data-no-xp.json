@@ -1,0 +1,113 @@
+{
+  "analyze": {
+    "gameId": "game_nxp_001",
+    "accuracy": 61.5,
+    "blunders": [
+      {
+        "move": 15,
+        "san": "Qc2",
+        "comment": "皇后被抽",
+        "evalLoss": 3.2,
+        "bestMove": "Nd5"
+      },
+      {
+        "move": 22,
+        "san": "e4",
+        "comment": "兵被吃还送先手",
+        "evalLoss": 1.8,
+        "bestMove": "Bc4"
+      }
+    ],
+    "brilliants": [],
+    "opening": "French Defense",
+    "eco": "C00",
+    "phaseScores": {
+      "opening": 0.45,
+      "middlegame": 0.38,
+      "endgame": 0.55,
+      "defense": 0.3,
+      "attack": 0.5
+    },
+    "pgn": ""
+  },
+  "crawl_user": {
+    "games": [
+      {
+        "gameId": "game_nxp_001",
+        "opponent": "TacticsMaster",
+        "result": "lose",
+        "timeControl": "5+3",
+        "date": "2026-04-05",
+        "rating": 1120,
+        "opponentRating": 1350,
+        "url": "https://www.chess.com/game/live/444444441"
+      }
+    ]
+  },
+  "full_review": {
+    "gameInfo": {
+      "opponent": "TacticsMaster",
+      "result": "lose",
+      "timeControl": "5+3",
+      "date": "2026-04-05",
+      "rating": 1120,
+      "opponentRating": 1350
+    },
+    "analysis": {
+      "accuracy": 61.5,
+      "blunders": [
+        {
+          "move": 15,
+          "san": "Qc2",
+          "comment": "皇后被抽",
+          "evalLoss": 3.2,
+          "bestMove": "Nd5"
+        },
+        {
+          "move": 22,
+          "san": "e4",
+          "comment": "兵被吃还送先手",
+          "evalLoss": 1.8,
+          "bestMove": "Bc4"
+        }
+      ],
+      "brilliants": [],
+      "opening": "French Defense"
+    },
+    "review": {
+      "markdown": "❌ 对局复盘：vs TacticsMaster (5+3)\n\n❌ 结果：失败 (-2 XP)\n\n⭐ 准确率：61.5%\n🔴 漏着：第15步 - Qc2 ❌\n🔴 漏着：第22步 - e4 ❌\n\n💬 输了对局有点沮丧，但这正是学习的好机会！\n\n📊 能力雷达：\n   开局 ★★☆☆☆  中盘 ★★☆☆☆\n   残局 ★★★☆☆  防守 ★☆☆☆☆\n   进攻 ★★★☆☆",
+      "html": "<div class=\"review-card\">...</div>"
+    },
+    "gamification": {
+      "xpGained": 0,
+      "newTitles": [],
+      "newAchievements": [],
+      "radarData": {
+        "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+        "values": [2, 2, 3, 1, 3]
+      }
+    },
+    "chessAnalyst": {
+      "summary": "这盘棋输得比较彻底，28步就认输了。主要问题是中盘防守太弱，两次严重失误直接导致局面崩溃。",
+      "keyMistakes": [
+        {
+          "move": 15,
+          "description": "皇后被抽",
+          "originalMove": "Qc2",
+          "suggestedMove": "Nd5",
+          "reason": "Qc2被象攻击同时被马威胁，皇后被直接抽掉导致局面崩溃。应该走Nd5反击。"
+        },
+        {
+          "move": 22,
+          "description": "e4送兵还送先手",
+          "originalMove": "e4",
+          "suggestedMove": "Bc4",
+          "reason": "e4被黑方c5反击吃掉兵，同时失去空间优势。应该走Bc4加强防御。"
+        }
+      ],
+      "bestMoves": [],
+      "openingInsight": "法兰西防御是一种激烈的对抗性开局，黑方主动制造紧张局面。",
+      "todayLesson": "遇到对方进攻时，先检查每步棋是否被将军或被抽子，再考虑进攻。"
+    }
+  }
+}

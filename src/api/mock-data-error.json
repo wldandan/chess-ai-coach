@@ -1,0 +1,57 @@
+{
+  "analyze": {
+    "gameId": "game_err_001",
+    "accuracy": 0,
+    "blunders": [],
+    "brilliants": [],
+    "opening": "Unknown",
+    "eco": "?",
+    "phaseScores": {
+      "opening": 0,
+      "middlegame": 0,
+      "endgame": 0,
+      "defense": 0,
+      "attack": 0
+    },
+    "pgn": ""
+  },
+  "crawl_user": {
+    "games": []
+  },
+  "full_review": {
+    "gameInfo": {
+      "opponent": "Unknown",
+      "result": "unknown",
+      "timeControl": "?",
+      "date": "?",
+      "rating": null,
+      "opponentRating": null
+    },
+    "analysis": {
+      "accuracy": 0,
+      "blunders": [],
+      "brilliants": [],
+      "opening": "无法识别"
+    },
+    "review": {
+      "markdown": "❌ 无法获取复盘数据\n\n抱歉，无法分析这盘棋。请检查：\n- 棋谱是否完整\n- 网络连接是否正常\n- chess.com 对局是否存在\n\n稍后重试或联系支持。",
+      "html": "<div class=\"review-card error\">...</div>"
+    },
+    "gamification": {
+      "xpGained": 0,
+      "newTitles": [],
+      "newAchievements": [],
+      "radarData": {
+        "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+        "values": [0, 0, 0, 0, 0]
+      }
+    },
+    "chessAnalyst": {
+      "summary": "无法获取有效棋谱数据。",
+      "keyMistakes": [],
+      "bestMoves": [],
+      "openingInsight": "无",
+      "todayLesson": "确保棋谱完整且来自有效对局。"
+    }
+  }
+}

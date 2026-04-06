@@ -1,0 +1,140 @@
+{
+  "analyze": {
+    "gameId": "game_long_001",
+    "accuracy": 73.8,
+    "blunders": [
+      {
+        "move": 42,
+        "san": "Rd1",
+        "comment": "车被抽",
+        "evalLoss": 2.1,
+        "bestMove": "Be3"
+      },
+      {
+        "move": 58,
+        "san": "Kf7",
+        "comment": "王被将死",
+        "evalLoss": 5.5,
+        "bestMove": "Kg8"
+      }
+    ],
+    "brilliants": [
+      {
+        "move": 35,
+        "san": "Bxh7+",
+        "comment": "象吃h7将军！妙手！",
+        "evalGain": 1.5
+      }
+    ],
+    "opening": "King's Indian Defense",
+    "eco": "E60",
+    "phaseScores": {
+      "opening": 0.72,
+      "middlegame": 0.68,
+      "endgame": 0.45,
+      "defense": 0.5,
+      "attack": 0.78
+    },
+    "pgn": "[Event \"Long Game\"]\n[Site \"chess.com\"]\n[Date \"2026.04.05\"]\n[White \"Player\"]\n[Black \"GrandmasterBot\"]\n[Result \"0-1\"]\n[TimeControl \"30+30\"]\n\n1. d4 Nf6 2. c4 g6 3. Nc3 Bg7 4. e4 d6 5. Nf3 O-O 6. Be2 e5 7. O-O Nc6 8. d5 Ne7 9. Nd2 a5 10. a3 Nd7 11. Rb1 f5 12. exf5 gxf5 13. Nc4 Ne8 14. Be3 Bf6 15. Qd2 Ng6 16. Bd3 Ndf4 17. Bxf4 Nxf4 18. Rbe1 Qh4 19. g3 Nxd3 20. Qxd3 f4 21. Ne4 Bg5 22. Nfxg5 Qxg5 23. Qd2 fxg3 24. fxg3 Rxf1 25. Rxf1 Rf8 26. Rxf8+ Rxf8 27. Qe3 Qxe3+ 28. Nxe3 Bd7 29. Kf2 Kf7 30. Ke2 Ke7 31. Kd2 Kd8 32. Kc2 Kc8 33. Nd5 Bb5 34. Nf6 Rxf6 35. Bxh7+ Kb8 36. Be4 Rf3 37. hxg3 Rxg3 38. Kc3 Rxg3+ 39. Kb3 Rg2 40. h4 Rh2 41. Bd3 Bxd3 42. Rd1 Bc2+ 43. Kc3 Rh3+ 44. Kb2 Rxd3 45. Kc1 Rxb3 46. axb3 Kc7 47. Kd2 Kd7 48. Ke2 Ke7 49. Kf3 Kf6 50. Kg4 Kg6 51. h5+ Kxh5 52. Kh3 Kg5 53. Kg2 Kh4 54. Nh2 Bd3 55. Nf1 Bc2 56. Nd2 Bd1 57. Nf3+ Kg4 58. Kf7 0-1"
+  },
+  "crawl_user": {
+    "games": [
+      {
+        "gameId": "game_long_001",
+        "opponent": "GrandmasterBot",
+        "result": "lose",
+        "timeControl": "30+30",
+        "date": "2026-04-05",
+        "rating": 1420,
+        "opponentRating": 2500,
+        "url": "https://www.chess.com/game/live/333333331"
+      }
+    ]
+  },
+  "full_review": {
+    "gameInfo": {
+      "opponent": "GrandmasterBot",
+      "result": "lose",
+      "timeControl": "30+30",
+      "date": "2026-04-05",
+      "rating": 1420,
+      "opponentRating": 2500
+    },
+    "analysis": {
+      "accuracy": 73.8,
+      "blunders": [
+        {
+          "move": 42,
+          "san": "Rd1",
+          "comment": "车被抽",
+          "evalLoss": 2.1,
+          "bestMove": "Be3"
+        },
+        {
+          "move": 58,
+          "san": "Kf7",
+          "comment": "王被将死",
+          "evalLoss": 5.5,
+          "bestMove": "Kg8"
+        }
+      ],
+      "brilliants": [
+        {
+          "move": 35,
+          "san": "Bxh7+",
+          "comment": "象吃h7将军！妙手！",
+          "evalGain": 1.5
+        }
+      ],
+      "opening": "King's Indian Defense"
+    },
+    "review": {
+      "markdown": "❌ 对局复盘：vs GrandmasterBot (30+30)\n\n❌ 结果：失败 (-1 XP)\n\n⭐ 准确率：73.8%\n🔴 漏着：第42步 - Rd1 ❌\n🔴 漏着：第58步 - Kf7 ❌\n🟡 妙着：第35步 - Bxh7+ ✨\n\n💬 对手是2500分的AI，这盘棋58步，残局被将死。不过中盘的Bxh7+很精彩！\n\n📊 能力雷达：\n   开局 ★★★★☆  中盘 ★★★☆☆\n   残局 ★★☆☆☆  防守 ★★★☆☆\n   进攻 ★★★★☆",
+      "html": "<div class=\"review-card\">...</div>"
+    },
+    "gamification": {
+      "xpGained": 0,
+      "newTitles": [],
+      "newAchievements": [
+        {
+          "id": "long_game_survivor",
+          "name": "长局幸存者",
+          "description": "完成一盘50+步的对局",
+          "icon": "🏅"
+        }
+      ],
+      "radarData": {
+        "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+        "values": [4, 3, 2, 3, 4]
+      }
+    },
+    "chessAnalyst": {
+      "summary": "这是一盘58步的长局，你执黑负于2500分AI。虽然输了，但整体表现比预期要好。中盘有一个精彩的Bxh7+妙着，但残局被AI完美将死。",
+      "keyMistakes": [
+        {
+          "move": 42,
+          "description": "车被抽",
+          "originalMove": "Rd1",
+          "suggestedMove": "Be3",
+          "reason": "Rd1送车给AI吃，应该走Be3继续对攻，局面仍然复杂。"
+        },
+        {
+          "move": 58,
+          "description": "王被将死",
+          "originalMove": "Kf7",
+          "suggestedMove": "Kg8",
+          "reason": "Kf7是致命的败着，被AI连续将军将死。应该走Kg8顽抗。"
+        }
+      ],
+      "bestMoves": [
+        {
+          "move": 35,
+          "san": "Bxh7+",
+          "reason": "Bxh7+是精彩的弃象入局战术，打开h线并赢得物质，给对手制造了很大压力。"
+        }
+      ],
+      "openingInsight": "印度防御是一种积极的对称性格局，黑方允许白方空间优势但在中心反击。",
+      "todayLesson": "残局需要更加小心王的安全，特别是在时间紧张时不要走出致命的败着。"
+    }
+  }
+}

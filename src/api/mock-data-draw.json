@@ -1,0 +1,68 @@
+{
+  "analyze": {
+    "gameId": "game_draw_001",
+    "accuracy": 91.3,
+    "blunders": [],
+    "brilliants": [],
+    "opening": "London System",
+    "eco": "A45",
+    "phaseScores": {
+      "opening": 0.88,
+      "middlegame": 0.85,
+      "endgame": 0.9,
+      "defense": 0.92,
+      "attack": 0.8
+    },
+    "pgn": ""
+  },
+  "crawl_user": {
+    "games": [
+      {
+        "gameId": "game_d_001",
+        "opponent": "DrawMaster",
+        "result": "draw",
+        "timeControl": "30+0",
+        "date": "2026-04-05",
+        "rating": 1780,
+        "opponentRating": 1785,
+        "url": "https://www.chess.com/game/live/555555551"
+      }
+    ]
+  },
+  "full_review": {
+    "gameInfo": {
+      "opponent": "DrawMaster",
+      "result": "draw",
+      "timeControl": "30+0",
+      "date": "2026-04-05",
+      "rating": 1780,
+      "opponentRating": 1785
+    },
+    "analysis": {
+      "accuracy": 91.3,
+      "blunders": [],
+      "brilliants": [],
+      "opening": "London System"
+    },
+    "review": {
+      "markdown": "🤝 对局复盘：vs DrawMaster (30+0)\n\n🤝 结果：平局！(+3 XP)\n\n⭐ 准确率：91.3%\n\n💬 稳健的对局，双方都没有明显失误，势均力敌！\n\n📊 能力雷达：\n   开局 ★★★★☆  中盘 ★★★★☆\n   残局 ★★★★☆  防守 ★★★★★\n   进攻 ★★★★☆",
+      "html": "<div class=\"review-card\">...</div>"
+    },
+    "gamification": {
+      "xpGained": 3,
+      "newTitles": [],
+      "newAchievements": [],
+      "radarData": {
+        "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+        "values": [4, 4, 4, 5, 4]
+      }
+    },
+    "chessAnalyst": {
+      "summary": "这是一盘65步的平局对局，双方表现都很稳定，没有明显失误。防守能力尤其突出。",
+      "keyMistakes": [],
+      "bestMoves": [],
+      "openingInsight": "伦敦体系是一种稳固的开局，适合防守型棋手。",
+      "todayLesson": "稳健是好事，但有时候需要更积极争取胜利。"
+    }
+  }
+}

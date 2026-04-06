@@ -1,0 +1,129 @@
+{
+  "analyze": {
+    "gameId": "game_norating_001",
+    "accuracy": 75.2,
+    "blunders": [
+      {
+        "move": 18,
+        "san": "f5",
+        "comment": "小兵冒进，被吃了",
+        "evalLoss": 0.9,
+        "bestMove": "Rf3"
+      }
+    ],
+    "brilliants": [
+      {
+        "move": 27,
+        "san": "Nf6+",
+        "comment": "马跳将军！抽车还带攻势",
+        "evalGain": 1.8
+      }
+    ],
+    "opening": "Italian Game",
+    "eco": "C50",
+    "phaseScores": {
+      "opening": 0.65,
+      "middlegame": 0.58,
+      "endgame": 0.72,
+      "defense": 0.55,
+      "attack": 0.68
+    },
+    "pgn": ""
+  },
+  "crawl_user": {
+    "games": [
+      {
+        "gameId": "game_nr_001",
+        "opponent": "ChessNewbie",
+        "result": "win",
+        "timeControl": "15+0",
+        "date": "2026-04-05",
+        "rating": null,
+        "opponentRating": null,
+        "url": "https://www.chess.com/game/live/987654321"
+      },
+      {
+        "gameId": "game_nr_002",
+        "opponent": "RandomPlayer",
+        "result": "lose",
+        "timeControl": "10+0",
+        "date": "2026-04-04",
+        "rating": null,
+        "opponentRating": null,
+        "url": "https://www.chess.com/game/live/987654320"
+      }
+    ]
+  },
+  "full_review": {
+    "gameInfo": {
+      "opponent": "ChessNewbie",
+      "result": "win",
+      "timeControl": "15+0",
+      "date": "2026-04-05",
+      "rating": null,
+      "opponentRating": null
+    },
+    "analysis": {
+      "accuracy": 75.2,
+      "blunders": [
+        {
+          "move": 18,
+          "san": "f5",
+          "comment": "小兵冒进，被吃了",
+          "evalLoss": 0.9,
+          "bestMove": "Rf3"
+        }
+      ],
+      "brilliants": [
+        {
+          "move": 27,
+          "san": "Nf6+",
+          "comment": "马跳将军！抽车还带攻势",
+          "evalGain": 1.8
+        }
+      ],
+      "opening": "Italian Game"
+    },
+    "review": {
+      "markdown": "🏆 对局复盘：vs ChessNewbie (15+0)\n\n🏆 结果：胜利！(+5 XP)\n\n⭐ 准确率：75.2%\n🔴 漏着：第18步 - f5 ❌\n🟡 妙着：第27步 - Nf6+ ✨\n\n💬 无评级用户的胜利，继续保持！\n\n📊 能力雷达：\n   开局 ★★★☆☆  中盘 ★★★☆☆\n   残局 ★★★★☆  防守 ★★★☆☆\n   进攻 ★★★☆☆",
+      "html": "<div class=\"review-card\">...</div>"
+    },
+    "gamification": {
+      "xpGained": 5,
+      "newTitles": [],
+      "newAchievements": [
+        {
+          "id": "first_battle",
+          "name": "初战告捷",
+          "description": "完成第一盘复盘",
+          "icon": "🎖️"
+        }
+      ],
+      "radarData": {
+        "labels": ["开局", "中盘", "残局", "防守", "进攻"],
+        "values": [3, 3, 4, 3, 3]
+      }
+    },
+    "chessAnalyst": {
+      "summary": "这是一盘无评级用户的对局，36步结束。你进攻意识不错，但中盘有些松懈。",
+      "keyMistakes": [
+        {
+          "move": 18,
+          "description": "f5 兵冒进被吃",
+          "originalMove": "f5",
+          "suggestedMove": "Rf3",
+          "reason": "f5兵位置过于突出，被对方轻易吃掉。应该走Rf3加强进攻同时保护兵。"
+        }
+      ],
+      "bestMoves": [
+        {
+          "move": 27,
+          "san": "Nf6+",
+          "reason": "Nf6+是精妙的将军，带抽车还保持攻势，是本局最佳着法。"
+        }
+      ],
+      "openingInsight": "意大利开局是经典开局，适合初学者掌握基本战术。",
+      "todayLesson": "进攻时注意子力协调，不要单独突出某个子。"
+    }
+  }
+}

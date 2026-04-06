@@ -159,10 +159,31 @@ export interface BestMove {
 }
 
 // ============================================================
-// Mock Data (loaded from JSON)
+// Mock Data Files
 // ============================================================
 
-import mockData from './mock-data.json';
+import defaultData from './mock-data.json';
+import noRatingData from './mock-data-no-rating.json';
+import drawData from './mock-data-draw.json';
+import noXpData from './mock-data-no-xp.json';
+import errorData from './mock-data-error.json';
+import longGameData from './mock-data-long-game.json';
+
+const mockDataSets: Record<string, any> = {
+  default: defaultData,
+  'no-rating': noRatingData,
+  draw: drawData,
+  'no-xp': noXpData,
+  error: errorData,
+  'long-game': longGameData,
+};
+
+function getMockData(mockName?: string): any {
+  if (!mockName || !mockDataSets[mockName]) {
+    return defaultData;
+  }
+  return mockDataSets[mockName];
+}
 
 // ============================================================
 // Mock API Handler
@@ -172,31 +193,34 @@ function generateRequestId(): string {
   return `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function generateMockAnalyzeResult(): AnalyzeResult {
+function generateMockAnalyzeResult(mockName?: string): AnalyzeResult {
+  const data = getMockData(mockName);
   return {
-    ...mockData.analyze,
+    ...data.analyze,
     gameId: `game_${Date.now()}`,
   };
 }
 
-function generateMockCrawlResult(username: string): CrawlUserResult {
+function generateMockCrawlResult(username: string, mockName?: string): CrawlUserResult {
+  const data = getMockData(mockName);
   return {
     username,
-    games: mockData.crawl_user.games,
+    games: data.crawl_user.games,
   };
 }
 
-function generateMockFullReview(pgn: string, username: string): FullReviewResult {
+function generateMockFullReview(pgn: string, username: string, mockName?: string): FullReviewResult {
+  const data = getMockData(mockName);
   return {
     gameId: `game_${Date.now()}`,
     gameInfo: {
-      ...mockData.full_review.gameInfo,
+      ...data.full_review.gameInfo,
       date: new Date().toISOString().split('T')[0],
     },
-    analysis: mockData.full_review.analysis,
-    review: mockData.full_review.review,
-    gamification: mockData.full_review.gamification,
-    chessAnalyst: mockData.full_review.chessAnalyst,
+    analysis: data.full_review.analysis,
+    review: data.full_review.review,
+    gamification: data.full_review.gamification,
+    chessAnalyst: data.full_review.chessAnalyst,
   };
 }
 
@@ -204,6 +228,7 @@ export async function handleApiRequest(
   body: AnalyzeRequest | CrawlUserRequest | FullReviewRequest
 ): Promise<ApiResponse<unknown>> {
   const requestId = generateRequestId();
+  const mockName = (body as any).mock;
 
   // 模拟网络延迟
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -213,14 +238,14 @@ export async function handleApiRequest(
       case 'analyze':
         return {
           success: true,
-          data: generateMockAnalyzeResult(),
+          data: generateMockAnalyzeResult(mockName),
           requestId,
         };
 
       case 'crawl_user':
         return {
           success: true,
-          data: generateMockCrawlResult((body as CrawlUserRequest).username),
+          data: generateMockCrawlResult((body as CrawlUserRequest).username, mockName),
           requestId,
         };
 
@@ -228,7 +253,7 @@ export async function handleApiRequest(
         const req = body as FullReviewRequest;
         return {
           success: true,
-          data: generateMockFullReview(req.pgn, req.username),
+          data: generateMockFullReview(req.pgn, req.username, mockName),
           requestId,
         };
 
@@ -255,33 +280,29 @@ export async function handleApiRequest(
 async function test() {
   console.log('🧪 Testing Chess Coach API Mock\n');
 
-  // Test analyze
-  console.log('1. POST /api/chess-coach { action: "analyze" }');
-  const analyzeResult = await handleApiRequest({
-    action: 'analyze',
-    pgn: '1.e4 e5 2.Nf3 Nc6',
-    userId: 'test_user',
-  });
-  console.log(JSON.stringify(analyzeResult, null, 2));
+  // 测试所有 mock 数据集
+  const mockSets = ['default', 'no-rating', 'draw', 'no-xp', 'error', 'long-game'];
 
-  // Test crawl_user
-  console.log('\n2. POST /api/chess-coach { action: "crawl_user" }');
-  const crawlResult = await handleApiRequest({
-    action: 'crawl_user',
-    username: 'MagnusFan2024',
-    limit: 10,
-  });
-  console.log(JSON.stringify(crawlResult, null, 2));
+  for (const mockName of mockSets) {
+    console.log(`\n${'='.repeat(50)}`);
+    console.log(`Testing mock dataset: ${mockName}`);
+    console.log('='.repeat(50));
 
-  // Test full_review
-  console.log('\n3. POST /api/chess-coach { action: "full_review" }');
-  const fullResult = await handleApiRequest({
-    action: 'full_review',
-    pgn: '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6',
-    userId: 'test_user',
-    username: 'ChessKid',
-  });
-  console.log(JSON.stringify(fullResult, null, 2));
+    const result = await handleApiRequest({
+      action: 'full_review',
+      pgn: '1.e4 e5 2.Nf3 Nc6',
+      userId: 'test_user',
+      username: 'TestPlayer',
+      mock: mockName,
+    });
+
+    const data = result.data as any;
+    console.log(`  gameId: ${data?.gameId}`);
+    console.log(`  result: ${data?.gameInfo?.result}`);
+    console.log(`  accuracy: ${data?.analysis?.accuracy}`);
+    console.log(`  xpGained: ${data?.gamification?.xpGained}`);
+    console.log(`  achievements: ${data?.gamification?.newAchievements?.length}`);
+  }
 }
 
 // test();
