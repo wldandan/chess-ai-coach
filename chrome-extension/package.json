@@ -1,0 +1,22 @@
+{
+  "name": "chess-coach-chrome-extension",
+  "version": "0.1.0",
+  "description": "Chess Coach Chrome Extension - AI 国际象棋复盘插件",
+  "scripts": {
+    "dev": "wxt dev",
+    "build": "wxt build",
+    "preview": "wxt preview"
+  },
+  "dependencies": {
+    "chess.js": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/node": "^22.0.0",
+    "@wxt-dev/module-react": "^1.2.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.4.0",
+    "wxt": "^0.20.20"
+  }
+}

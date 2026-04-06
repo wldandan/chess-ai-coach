@@ -1,45 +1,51 @@
 /**
  * Chess Coach Gateway
  *
- * 中间层服务 - 支持 OpenClaw 和 OpenCode 两条分析路径
+ * HTTP 网关 - 统一入口，路由到 OpenClaw 或 OpenCode
  *
  * 架构：
- *   Extension (HTTP) → gateway.js (:18790)
+ *   Extension (HTTP) → gateway.ts (:18790)
  *                          │
- *                          ├── OpenClaw (WebSocket) → chess agents
- *                          │   ws://127.0.0.1:18789
- *                          │
- *                          └── OpenCode (HTTP) → LLM + chess skill
- *                              https://api.opencode.ai/v1/chat/completions
+ *              ┌───────────┴───────────┐
+ *              ▼                       ▼
+ *         OpenClaw               OpenCode
+ *        (WebSocket)              (HTTP API)
+ *              │                       │
+ *              └───────────┬───────────┘
+ *                          ▼
+ *                    agents/*.SKILL.md
  *
- * 启动：node src/api/gateway.js
+ * 启动：npx ts-node src/api/gateway.ts
  * HTTP 端口：18790 (对外)
  */
 
-const { WebSocket } = require('ws');
-const http = require('http');
+import http from 'http';
+import { WebSocket } from 'ws';
 
 // ============================
 // 配置
 // ============================
 const GATEWAY_PORT = 18790;
-const OPENCLAW_URL = process.env.OPENCLAW_URL || 'ws://127.0.0.1:18789';
 const GATEWAY_API_KEY = process.env.GATEWAY_API_KEY || '6fb45eed3740d32a7d04e4d9e6327b7a3238381338620202288d66b307c55ca7';
+
+// OpenClaw 配置
+const OPENCLAW_URL = process.env.OPENCLAW_URL || 'ws://127.0.0.1:18789';
+const OPENCLAW_TIMEOUT = 120000;
 
 // OpenCode 配置
 const OPENCODE_API_KEY = process.env.OPENCODE_API_KEY || '';
 const OPENCODE_API_URL = process.env.OPENCODE_API_URL || 'https://api.opencode.ai/v1/chat/completions';
-const OPENCODE_MODEL = process.env.OPENCODE_MODEL || 'opencode/gpt-4o';
+const OPENCODE_MODEL = process.env.OPENCODE_MODEL || 'minimax/MiniMax-M2.2';
 
 // ============================
 // 工具函数
 // ============================
 
-function generateRequestId() {
+function generateRequestId(): string {
   return `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function sendJson(res, status, data) {
+function sendJson(res: http.ServerResponse, status: number, data: unknown): void {
   res.writeHead(status, {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -49,114 +55,126 @@ function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
-
 // ============================
-// OpenClaw 连接管理
+// OpenClaw Client
 // ============================
 
 class OpenClawClient {
-  constructor() {
-    this.ws = null;
-    this.pendingRequests = new Map();
-    this.requestId = 0;
-    this.connected = false;
-    this.connect();
-  }
+  private ws: WebSocket | null = null;
+  private connected = false;
+  private pendingRequests = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }>();
+  private requestId = 0;
 
-  connect() {
-    console.log(`[${generateRequestId()}] Connecting to OpenClaw at ${OPENCLAW_URL}...`);
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log(`[Gateway] Connecting to OpenClaw at ${OPENCLAW_URL}...`);
 
-    this.ws = new WebSocket(OPENCLAW_URL);
+      this.ws = new WebSocket(OPENCLAW_URL);
 
-    this.ws.on('open', () => {
-      console.log(`[${generateRequestId()}] Connected to OpenClaw Gateway`);
-      this.connected = true;
-    });
+      const timeout = setTimeout(() => {
+        reject(new Error('OpenClaw connection timeout'));
+      }, 10000);
 
-    this.ws.on('message', (data) => {
-      const message = JSON.parse(data.toString());
+      this.ws.on('open', () => {
+        clearTimeout(timeout);
+        this.connected = true;
+        console.log('[Gateway] Connected to OpenClaw');
+        resolve();
+      });
 
-      if (message.id && this.pendingRequests.has(message.id)) {
-        const { resolve, reject, timer } = this.pendingRequests.get(message.id);
-        clearTimeout(timer);
-        this.pendingRequests.delete(message.id);
-
-        if (message.error) {
-          reject(new Error(message.error.message || 'OpenClaw error'));
-        } else {
-          resolve(message.result || message);
+      this.ws.on('message', (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          if (message.id && this.pendingRequests.has(message.id)) {
+            const { resolve, reject, timer } = this.pendingRequests.get(message.id)!;
+            clearTimeout(timer);
+            this.pendingRequests.delete(message.id);
+            if (message.error) {
+              reject(new Error(message.error.message || 'OpenClaw error'));
+            } else {
+              resolve(message.result || message);
+            }
+          }
+        } catch (e) {
+          console.error('[Gateway] Failed to parse OpenClaw message:', e);
         }
-      }
-    });
+      });
 
-    this.ws.on('close', () => {
-      console.log(`[${generateRequestId()}] Disconnected from OpenClaw`);
-      this.connected = false;
+      this.ws.on('close', () => {
+        this.connected = false;
+        console.log('[Gateway] OpenClaw disconnected');
+      });
 
-      setTimeout(() => {
-        console.log(`[${generateRequestId()}] Reconnecting to OpenClaw...`);
-        this.connect();
-      }, 5000);
-    });
-
-    this.ws.on('error', (error) => {
-      console.error(`[${generateRequestId()}] OpenClaw WebSocket error:`, error.message);
+      this.ws.on('error', (error) => {
+        console.error('[Gateway] OpenClaw error:', error.message);
+        clearTimeout(timeout);
+        reject(error);
+      });
     });
   }
 
-  async send(type, params = {}) {
-    if (!this.connected || !this.ws) {
-      throw new Error('Not connected to OpenClaw Gateway');
+  async send(type: string, params: Record<string, unknown>): Promise<unknown> {
+    if (!this.ws || !this.connected) {
+      throw new Error('Not connected to OpenClaw');
     }
 
     const id = ++this.requestId;
-    const message = {
-      type: type,
-      params: params,
-      id: id,
-    };
+    const message = { type, params, id };
 
-    console.log(`[${generateRequestId()}] Sending to OpenClaw:`, JSON.stringify(message).slice(0, 100));
+    console.log(`[Gateway] Sending to OpenClaw:`, type);
 
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
-        if (this.pendingRequests.has(id)) {
-          this.pendingRequests.delete(id);
-          reject(new Error('Request to OpenClaw Gateway timeout'));
-        }
-      }, 120000);
+        this.pendingRequests.delete(id);
+        reject(new Error('OpenClaw request timeout'));
+      }, OPENCLAW_TIMEOUT);
 
       this.pendingRequests.set(id, { resolve, reject, timer });
-      this.ws.send(JSON.stringify(message));
+      this.ws!.send(JSON.stringify(message));
     });
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  disconnect(): void {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
   }
 }
 
 const openclaw = new OpenClawClient();
 
+// 启动时连接 OpenClaw
+openclaw.connect().catch((e) => {
+  console.warn('[Gateway] OpenClaw not available:', e.message);
+});
+
 // ============================
-// OpenCode HTTP Client
+// OpenCode Client
 // ============================
 
 class OpenCodeClient {
-  constructor() {
-    this.apiKey = OPENCODE_API_KEY;
-    this.apiUrl = OPENCODE_API_URL;
-    this.model = OPENCODE_MODEL;
-  }
+  constructor(
+    private apiKey: string,
+    private apiUrl: string,
+    private model: string
+  ) {}
 
-  async analyze(pgn, userId) {
+  async analyze(pgn: string, userId?: string): Promise<unknown> {
     if (!this.apiKey) {
       throw new Error('OpenCode API key not configured. Set OPENCODE_API_KEY environment variable.');
     }
 
-    // 直接发送 PGN 给 OpenCode，让 OpenCode 使用已配置的 skill 进行分析
     const userMessage = `请分析以下棋局（PGN格式）：
 ${pgn}
 
 用户: ${userId || 'anonymous'}`;
 
-    console.log(`[${generateRequestId()}] Calling OpenCode API with model: ${this.model}`);
+    console.log(`[Gateway] Calling OpenCode API with model: ${this.model}`);
 
     const response = await fetch(this.apiUrl, {
       method: 'POST',
@@ -188,18 +206,17 @@ ${pgn}
 
     // 解析 JSON 响应
     try {
-      // 尝试提取 JSON（可能包含在 markdown 代码块中）
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/(\{[\s\S]*\})/);
       const jsonStr = jsonMatch ? jsonMatch[1] : content;
       return JSON.parse(jsonStr.trim());
     } catch (parseError) {
-      console.error(`[${generateRequestId()}] Failed to parse OpenCode response:`, content.slice(0, 200));
+      console.error('[Gateway] Failed to parse OpenCode response:', content.slice(0, 200));
       throw new Error('Failed to parse OpenCode response as JSON');
     }
   }
 }
 
-const opencode = new OpenCodeClient();
+const opencode = new OpenCodeClient(OPENCODE_API_KEY, OPENCODE_API_URL, OPENCODE_MODEL);
 
 // ============================
 // HTTP 服务器
@@ -221,7 +238,7 @@ server.on('request', async (req, res) => {
   if (req.method === 'GET' && req.url === '/health') {
     sendJson(res, 200, {
       status: 'ok',
-      openclawConnected: openclaw.connected,
+      openclawConnected: openclaw.isConnected(),
       opencodeConfigured: !!OPENCODE_API_KEY,
       timestamp: new Date().toISOString()
     });
@@ -243,7 +260,14 @@ server.on('request', async (req, res) => {
         return;
       }
 
-      let request;
+      let request: {
+        action: string;
+        pgn?: string;
+        userId?: string;
+        username?: string;
+        limit?: number;
+        provider?: 'openclaw' | 'opencode';
+      };
       try {
         request = JSON.parse(body);
       } catch (e) {
@@ -252,17 +276,17 @@ server.on('request', async (req, res) => {
       }
 
       const { action, pgn, userId, username, limit, provider } = request;
-      console.log(`[${reqId}] Action: ${action}, Provider: ${provider || 'openclaw (default)'}`);
+      console.log(`[${reqId}] Action: ${action}, Provider: ${provider || 'openclaw'}`);
 
       try {
-        let result;
-
-        // 根据 provider 选择分析路径
         const analysisProvider = provider || 'openclaw';
+        let result: unknown;
 
         switch (analysisProvider) {
           case 'openclaw':
-            // OpenClaw WebSocket 路径
+            if (!openclaw.isConnected()) {
+              throw new Error('OpenClaw is not connected. Please ensure OpenClaw is running.');
+            }
             switch (action) {
               case 'analyze':
                 result = await openclaw.send('analyze', { pgn, userId });
@@ -279,20 +303,18 @@ server.on('request', async (req, res) => {
             break;
 
           case 'opencode':
-            // OpenCode HTTP 路径
             if (!OPENCODE_API_KEY) {
               throw new Error('OpenCode API key not configured');
             }
             switch (action) {
               case 'analyze':
-                result = await opencode.analyze(pgn, userId);
+                result = await opencode.analyze(pgn!, userId);
                 break;
               case 'full_review':
-                // OpenCode 不支持 full_review（需要 crawl），改为调用 analyze
-                result = await opencode.analyze(pgn, userId);
+                result = await opencode.analyze(pgn!, userId);
                 break;
               default:
-                throw new Error(`Action '${action}' not supported with OpenCode provider`);
+                throw new Error(`Action '${action}' not supported with OpenCode provider (only analyze available)`);
             }
             break;
 
@@ -303,8 +325,8 @@ server.on('request', async (req, res) => {
         console.log(`[${reqId}] Response success`);
         sendJson(res, 200, { success: true, data: result, requestId: reqId, provider: analysisProvider });
       } catch (error) {
-        console.error(`[${reqId}] Error:`, error.message);
-        sendJson(res, 500, { success: false, error: error.message, requestId: reqId });
+        console.error(`[${reqId}] Error:`, error);
+        sendJson(res, 500, { success: false, error: error instanceof Error ? error.message : 'Internal error', requestId: reqId });
       }
     });
     return;
@@ -325,26 +347,34 @@ server.listen(GATEWAY_PORT, '0.0.0.0', () => {
 ╠═══════════════════════════════════════════════════════════════╣
 ║  HTTP Port: ${GATEWAY_PORT} (对外)                                ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  分析路径:                                                ║
-║    OpenClaw: ws://127.0.0.1:18789 (WebSocket)              ║
-║    OpenCode: ${OPENCODE_API_URL}              ║
-║             Model: ${OPENCODE_MODEL}                     ║
+║  架构:                                                      ║
+║    Gateway (HTTP)                                           ║
+║         │                                                   ║
+║    ┌─────┴─────┐                                           ║
+║    ▼           ▼                                           ║
+║ OpenClaw   OpenCode                                         ║
+║ (WebSocket) (HTTP API)                                      ║
+║    │           │                                           ║
+║    └─────┬─────┘                                           ║
+║          ▼                                                 ║
+║    agents/*.SKILL.md                                        ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  认证:                                                    ║
+║  认证:                                                      ║
 ║    Header: Authorization: Bearer <API_KEY>                  ║
 ║    默认密钥: ${GATEWAY_API_KEY.slice(0, 20)}...                       ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  REST API:                                                ║
-║    POST /api/chess-coach                                  ║
-║    GET  /health                                           ║
+║  REST API:                                                  ║
+║    POST /api/chess-coach                                    ║
+║    GET  /health                                             ║
 ║                                                           ║
-║  Body:                                                    ║
-║    {                                                      ║
-║      "action": "analyze" | "full_review",                 ║
-║      "pgn": "...",                                        ║
-║      "userId": "...",                                     ║
-║      "provider": "openclaw" | "opencode"  // 可选，默认 openclaw ║
-║    }                                                      ║
+║  Body:                                                      ║
+║    {                                                        ║
+║      "action": "analyze" | "crawl_user" | "full_review",   ║
+║      "pgn": "...",                                         ║
+║      "userId": "...",                                      ║
+║      "username": "...",                                     ║
+║      "provider": "openclaw" | "opencode"                    ║
+║    }                                                        ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════════╝
   `);
@@ -353,9 +383,7 @@ server.listen(GATEWAY_PORT, '0.0.0.0', () => {
 // 优雅关闭
 process.on('SIGINT', () => {
   console.log('\n👋 Shutting down Gateway...');
-  if (openclaw.ws) {
-    openclaw.ws.close();
-  }
+  openclaw.disconnect();
   server.close();
   process.exit(0);
 });
