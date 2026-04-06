@@ -67,18 +67,17 @@ chess-ai-coach/
 |------|------|------|
 | Chrome Extension | `chrome-extension/` | 插件 UI（popup, content script） |
 | API Gateway | `api-server/src/gateway.ts` | HTTP 入口，路由到 OpenClaw/OpenCode |
-| Agents | `agents/*.SKILL.md` | Agent 能力定义（OpenClaw/OpenCode 运行时读取） |
+| OpenClaw/OpenCode | 外部运行时 | 读取 `agents/*.SKILL.md` 并执行 |
 
 ### Gateway (`api-server/src/gateway.ts`)
 
-**唯一 HTTP 入口**，负责路由分发。
+**HTTP 入口**，路由到 OpenClaw 或 OpenCode。
 
 | 职责 | 说明 |
 |------|------|
 | HTTP 服务 | 监听 18790 端口 |
 | 认证 | Bearer API_KEY 验证 |
 | 路由分发 | 根据 `provider` 路由到 OpenClaw 或 OpenCode |
-| 协议转换 | HTTP → WebSocket (OpenClaw) / HTTP (OpenCode) |
 
 ### Agent 定义 (`agents/`)
 
