@@ -81,26 +81,23 @@ chess-ai-coach/
 │                                      ▼                                           │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                          Gateway (:18790)                                      │
-│                          (api-server/src/gateway.ts)                           │
-│                                      │                                           │
-│                    ┌─────────────────┴─────────────────┐                      │
-│                    │                               │                          │
-│              ┌─────▼─────┐                   ┌─────▼─────┐                    │
-│              │ OpenClaw  │                   │  OpenCode │                    │
-│              │(WebSocket)│                   │   (HTTP)  │                    │
-│              │  :18789   │                   │   API     │                    │
-│              └─────┬─────┘                   └─────┬─────┘                    │
-│                    │                               │                          │
-│                    └───────────────┬───────────────┘                          │
-│                                    ▼                                          │
-│                              agents/*.SKILL.md                                 │
-│                                    │                                           │
-│              ┌─────────────────────┼─────────────────────┐                    │
-│              ▼                     ▼                     ▼                    │
-│        ┌──────────┐          ┌────────────┐       ┌─────────────┐            │
-│        │  chess-  │          │   chess-   │       │    chess-   │            │
-│        │  engine  │          │  analyst   │       │  reviewer   │            │
-│        └──────────┘          └────────────┘       └─────────────┘            │
+│                   (api-server/src/gateway.ts - 独立实现)                       │
+│                                                                                 │
+│   职责：                                                                        │
+│   - HTTP 服务，监听 18790 端口                                                   │
+│   - API Key 认证                                                                │
+│   - 棋局分析逻辑（不依赖 OpenClaw/OpenCode）                                     │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│   OpenClaw / OpenCode (外部运行时，读取 agents/*.SKILL.md)                       │
+│                                                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────────┐   │
+│   │                      agents/*.SKILL.md                                  │   │
+│   │   chess-orchestrator / chess-engine / chess-analyst                     │   │
+│   │   chess-crawler / chess-reviewer / chess-gamification                   │   │
+│   └─────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -109,8 +106,8 @@ chess-ai-coach/
 | 组件 | 目录 | 职责 |
 |------|------|------|
 | Chrome Extension | `chrome-extension/` | 插件 UI（popup, content script） |
-| API Gateway | `api-server/src/gateway.ts` | HTTP 入口，路由到 OpenClaw/OpenCode |
-| Agents | `agents/*.SKILL.md` | Agent 能力定义（运行时由 OpenClaw/OpenCode 读取） |
+| API Gateway | `api-server/src/gateway.ts` | **独立实现**：HTTP 入口，棋局分析逻辑 |
+| OpenClaw/OpenCode | 外部运行时 | 读取 `agents/*.SKILL.md` 并执行 Agent 逻辑 |
 
 ### Agent 定义 (SKILL.md only)
 
