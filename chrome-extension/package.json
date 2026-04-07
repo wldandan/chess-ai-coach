@@ -5,12 +5,16 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
-    "preview": "wxt preview"
+    "preview": "wxt preview",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
   },
   "dependencies": {
     "chess.js": "^1.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/chrome": "^0.0.268",
     "@types/node": "^22.0.0",
     "@types/react": "^19.2.14",
