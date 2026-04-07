@@ -50,6 +50,9 @@ export interface ChromeMessage {
   payload?: Game | { gameId: string; pgn: string } | string;
   gameId?: string;
   username?: string;
+  success?: boolean;
+  pgn?: string;
+  url?: string;
 }
 
 export interface UserConfig {
