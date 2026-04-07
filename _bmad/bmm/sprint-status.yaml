@@ -43,12 +43,12 @@ story_location: _bmad/bmm/stories
 
 development_status:
   # Epic 1: Chrome Extension + Mock Server
-  epic-1: in-progress
+  epic-1: done
   1-1-chrome-extension-project-initialization: done
   1-2-content-script-pgn-extraction: done
   1-3-popup-ui-implementation: backlog
   1-4-mock-server-implementation: done
-  1-5-end-to-end-integration-test: backlog
+  1-5-end-to-end-integration-test: done
   epic-1-retrospective: optional
 
   # Epic 2: Server 调度 OpenClaw
