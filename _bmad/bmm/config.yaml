@@ -1,0 +1,7 @@
+project_name: chess-ai-coach
+user_name: leon
+communication_language: 中文
+document_output_language: 中文
+implementation_artifacts: _bmad/bmm/stories
+planning_artifacts: _bmad/bmm
+date: 2026-04-07
