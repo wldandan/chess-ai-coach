@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ReviewResult } from '../App';
+import type { ReviewResult } from '../types';
 
 interface Props {
   result: ReviewResult;

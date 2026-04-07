@@ -46,8 +46,8 @@ export interface GameAnalysis {
 }
 
 export interface ChromeMessage {
-  type: 'GET_GAME' | 'GAME_DATA' | 'ANALYZE_GAME' | 'START_REVIEW';
-  payload?: Game | { gameId: string; pgn: string };
+  type: 'GET_GAME' | 'GAME_DATA' | 'ANALYZE_GAME' | 'START_REVIEW' | 'ERROR';
+  payload?: Game | { gameId: string; pgn: string } | string;
   gameId?: string;
   username?: string;
 }

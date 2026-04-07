@@ -3,7 +3,10 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
 
-  // Output directory
+  // Directory configuration
+  entrypointsDir: 'entrypoints',
+
+  // Use same output dir for both dev and build
   outDir: 'output',
 
   manifest: {
@@ -19,11 +22,6 @@ export default defineConfig({
       default_popup: 'popup/index.html',
     },
     options_page: 'options/index.html',
-  },
-
-  // Dev server config
-  devServer: {
-    restartOnEntrypointChanges: true,
   },
 
   // Aliases
