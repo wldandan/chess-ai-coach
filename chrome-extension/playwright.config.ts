@@ -16,12 +16,25 @@ export default defineConfig({
   },
 
   projects: [
+    // Unit/Integration tests (headless)
     {
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
         channel: 'chromium',
       },
+      testDir: './tests',
+      testIgnore: /e2e/,
+    },
+    // E2E tests (headed for visibility)
+    {
+      name: 'chromium-e2e',
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chromium',
+        headless: false,
+      },
+      testDir: './tests/e2e',
     },
   ],
 
