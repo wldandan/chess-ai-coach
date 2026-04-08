@@ -142,6 +142,7 @@ npm run test:headed
 
 | 测试类型 | 位置 | 说明 |
 |---------|------|------|
+| PGN Extraction | `tests/fixtures/pgn-extraction.spec.ts` | PGN 提取逻辑测试 |
 | Mock Server API | `tests/mock-server.spec.ts` | API 端点测试 |
 | Build Output | `tests/popup.spec.ts` | 构建产物验证 |
 | chess.com E2E | `tests/e2e/chesscom.spec.ts` | 真实页面测试 |
@@ -196,11 +197,26 @@ npm run dev  # 打开 Chrome
 
 ```
 tests/
-├── mock-server.spec.ts     # 5 tests  - API 端点测试
-├── popup.spec.ts           # 7 tests  - 构建产物验证
+├── fixtures/
+│   ├── chesscom-game-mock.html     # Mock chess.com 页面
+│   └── pgn-extraction.spec.ts      # 5 tests  - PGN 提取测试
+├── mock-server.spec.ts             # 5 tests  - API 端点测试
+├── popup.spec.ts                   # 7 tests  - 构建产物验证
 └── e2e/
-    └── chesscom.spec.ts   # 2 tests  - 真实页面 E2E
+    ├── chesscom.spec.ts            # 2 tests  - E2E 测试
+    └── .env.example               # 环境变量模板
 ```
+
+**总计：17 tests 全部通过**
+
+### PGN 提取方法支持
+
+| 方法 | Source | 状态 |
+|------|--------|------|
+| `data-pgn` | `<div data-pgn="...">` | ✅ |
+| `meta` tag | `<meta name="pgn" content="...">` | ✅ |
+| `window.pgnData` | `var pgnData = {pgn: "..."}` | ✅ |
+| `window.__NUXT__` | Nuxt SSR data | ✅ |
 
 ---
 
@@ -216,4 +232,4 @@ tests/
 
 ---
 
-*版本：v0.5.0 | 更新：2026-04-06*
+*版本：v0.5.0 | 更新：2026-04-08*
