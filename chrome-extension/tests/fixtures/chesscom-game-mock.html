@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="pgn" content="1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5">
+  <title>Chess.com Game - Test Game</title>
+</head>
+<body>
+  <div class="game-page">
+    <!-- Simulated chess.com game board -->
+    <div class="board-wrapper" data-board="main">
+      <div class="chess-board" data-pgn="1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5"></div>
+    </div>
+
+    <!-- Simulated script with PGN data -->
+    <script>
+      window.__NUXT__ = {
+        data: {
+          game: {
+            pgn: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5",
+            gameId: 166932545962
+          }
+        }
+      };
+
+      var pgnData = {
+        pgn: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7 6. Re1 b5 7. Bb3 d6 8. c3 O-O 9. h3 Na5 10. Bc2 c5"
+      };
+    </script>
+
+    <!-- Move list simulation -->
+    <div class="move-list">
+      <div class="move-node" data-ply="1" data-move="e4">1. e4</div>
+      <div class="move-node" data-ply="2" data-move="e5">... e5</div>
+      <div class="move-node" data-ply="3" data-move="Nf3">2. Nf3</div>
+      <div class="move-node" data-ply="4" data-move="Nc6">... Nc6</div>
+      <div class="move-node" data-ply="5" data-move="Bb5">3. Bb5</div>
+    </div>
+  </div>
+</body>
+</html>

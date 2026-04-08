@@ -49,21 +49,24 @@ test.describe('@chesscom E2E Tests', () => {
 
     // 1. 登录 chess.com
     console.log(`Logging in as ${username}...`);
-    await page.goto('https://www.chess.com/login');
 
-    // 等待登录页面加载
-    await page.waitForLoadState('networkidle');
+    // 直接导航到登录页，不等待 networkidle
+    await page.goto('https://www.chess.com/login', { timeout: 30000 });
+    await page.waitForLoadState('domcontentloaded');
 
-    // 填写登录表单
-    await page.fill('#username', username);
-    await page.fill('#password', password);
+    // 等待 username 输入框出现
+    await page.waitForSelector('input[name="_username"]', { timeout: 15000 });
+
+    // 填写登录表单 - chess.com 使用 name 属性
+    await page.fill('input[name="_username"]', username);
+    await page.fill('input[name="password"]', password);
 
     // 点击登录按钮
-    await page.click('button[type="submit"], .login-button');
+    await page.click('button[type="submit"]');
 
-    // 等待登录完成，跳转到首页
+    // 等待登录完成
     try {
-      await page.waitForURL('**/www.chess.com/**', { timeout: 10000 });
+      await page.waitForURL('**/www.chess.com/**', { timeout: 15000 });
       console.log('Login successful');
     } catch (e) {
       console.log('Login may have failed, continuing anyway...');
