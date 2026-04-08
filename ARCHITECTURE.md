@@ -153,6 +153,62 @@ Authorization: Bearer <API_KEY>
 2. 使用 `Authorization: Bearer <API_KEY>` 认证
 3. 生产环境建议加一层 Nginx 做 SSL 终止
 
+## 测试
+
+### 测试框架
+
+使用 **Playwright** 进行自动化测试。
+
+### 测试文件
+
+```
+chrome-extension/tests/
+├── mock-server.spec.ts     # 5 tests  - Mock API 测试
+├── popup.spec.ts           # 7 tests  - 构建产物测试
+├── helpers/
+│   └── extension-loader.ts
+└── e2e/
+    ├── chesscom.spec.ts   # 2 tests  - chess.com E2E 测试
+    └── .env.example       # 环境变量模板
+```
+
+### 运行测试
+
+```bash
+cd chrome-extension
+
+# 所有测试（headless）
+npm test
+
+# UI 模式
+npm run test:ui
+
+# headed 模式（显示浏览器）
+npm run test:headed
+
+# 只运行 E2E 测试
+npx playwright test tests/e2e/
+```
+
+### E2E 测试（真实 chess.com）
+
+需要 chess.com 账号：
+
+```bash
+# 1. 配置环境变量
+cp tests/e2e/.env.example tests/e2e/.env
+# 编辑 .env 填入账号密码
+
+# 2. 运行 E2E 测试
+npx playwright test tests/e2e/
+```
+
+### Mock Server 端口更正
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| Mock Server | **18889** | 18789 被 OpenClaw 占用 |
+
 ---
 
-*版本：v0.5.0 | 更新：2026-04-06*
+*版本：v0.5.0 | 更新：2026-04-08*

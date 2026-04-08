@@ -121,6 +121,89 @@ npm run gateway  # 启动 Gateway (端口 18790)
 npm run mock     # 启动 Mock Server (端口 18789)
 ```
 
+## 如何测试
+
+### 自动测试（推荐）
+
+```bash
+cd chrome-extension
+
+# 运行所有测试（headless）
+npm test
+
+# 运行测试并打开 UI
+npm run test:ui
+
+# 运行测试并显示浏览器
+npm run test:headed
+```
+
+### 测试类型
+
+| 测试类型 | 位置 | 说明 |
+|---------|------|------|
+| Mock Server API | `tests/mock-server.spec.ts` | API 端点测试 |
+| Build Output | `tests/popup.spec.ts` | 构建产物验证 |
+| chess.com E2E | `tests/e2e/chesscom.spec.ts` | 真实页面测试 |
+
+### E2E 测试（真实 chess.com）
+
+E2E 测试需要 chess.com 账号：
+
+```bash
+# 1. 创建环境变量文件
+cp tests/e2e/.env.example tests/e2e/.env
+
+# 2. 编辑 .env，填入账号密码
+# CHESS_COM_USER=your_username
+# CHESS_COM_PASSWORD=your_password
+# CHESS_COM_GAME_ID=123456789  # 可选
+
+# 3. 运行 E2E 测试
+npx playwright test tests/e2e/
+```
+
+⚠️ **注意**：
+- `.env` 文件已加入 `.gitignore`，不会被提交
+- 避免频繁测试，可能被 chess.com 限流
+
+### 手动测试 Chrome 插件
+
+1. **启动 Mock Server**
+```bash
+cd api-server
+node src/mock-server.js  # 端口 18889
+```
+
+2. **启动插件开发服务器**
+```bash
+cd chrome-extension
+npm run dev  # 打开 Chrome
+```
+
+3. **加载插件到 Chrome**
+   - 打开 `chrome://extensions/`
+   - 开启 **Developer mode**
+   - 点击 **Load unpacked**
+   - 选择 `chrome-extension/output/chrome-mv3-dev/`
+
+4. **测试流程**
+   - 打开 chess.com 棋局页面
+   - 点击插件图标 → **分析棋局**
+   - 查看复盘结果卡片
+
+### 测试覆盖率
+
+```
+tests/
+├── mock-server.spec.ts     # 5 tests  - API 端点测试
+├── popup.spec.ts           # 7 tests  - 构建产物验证
+└── e2e/
+    └── chesscom.spec.ts   # 2 tests  - 真实页面 E2E
+```
+
+---
+
 ## Tech Stack
 
 - **Chrome 插件**: WXT 框架 (MV3)
