@@ -5,7 +5,9 @@
   "main": "src/gateway.ts",
   "scripts": {
     "gateway": "npx ts-node src/gateway.ts",
-    "mock": "node src/mock-server.js"
+    "mock": "node src/mock-server.js",
+    "restart:mock": "lsof -ti:18889 | xargs kill -9 2>/dev/null; npm run mock",
+    "restart:gateway": "lsof -ti:18790 | xargs kill -9 2>/dev/null; npm run gateway"
   },
   "dependencies": {
     "ws": "^8.18.0"

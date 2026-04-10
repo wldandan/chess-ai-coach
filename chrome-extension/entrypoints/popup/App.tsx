@@ -19,6 +19,8 @@ interface UserConfig {
 export default function App() {
   const [config, setConfig] = useState<UserConfig | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [loadingMode, setLoadingMode] = useState<'demo' | 'analyze'>('demo');
   const [reviewResult, setReviewResult] = useState<ReviewResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -103,6 +105,8 @@ export default function App() {
     if (!config?.username) return;
 
     setIsLoading(true);
+    setLoadingMode('analyze');
+    setLoadingStep(0);
     setError(null);
     setReviewResult(null);
 
@@ -117,7 +121,8 @@ export default function App() {
         throw new Error('NOT_GAME_PAGE');
       }
 
-      // 发送消息给 content script
+      // 步骤1: 获取棋局
+      setLoadingStep(0);
       let response = null;
       for (let i = 0; i < 3; i++) {
         try {
@@ -138,16 +143,26 @@ export default function App() {
         pgnLength: response.pgn?.length,
       });
 
+      // 步骤2: 连接服务器
+      setLoadingStep(1);
+
       // 调用 gateway 分析棋局
       if (config.agentUrl) {
         try {
+          // 步骤3: 分析棋局
+          setLoadingStep(2);
           const analysisResult = await callGateway('analyze', {
             pgn: response.pgn,
             userId: config.username,
           });
           console.log('[Popup] Gateway result:', analysisResult);
 
-          // 转换 gateway 返回结果为 ReviewResult 格式
+          // 步骤4: AI 思考
+          setLoadingStep(3);
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          // 步骤5: 生成结果
+          setLoadingStep(4);
           const result: ReviewResult = {
             username: config.username,
             accuracy: analysisResult.accuracy || 85,
@@ -163,12 +178,16 @@ export default function App() {
         } catch (apiError: any) {
           console.error('[Popup] Gateway API failed, using mock:', apiError);
           // Gateway 调用失败时使用 mock
+          setLoadingStep(3);
           const mockResult = generateMockResult(config.username);
           await saveReviewResult(mockResult);
           setReviewResult(mockResult);
         }
       } else {
         // 没有配置 API 地址时使用 mock
+        setLoadingStep(2);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setLoadingStep(3);
         const mockResult = generateMockResult(config.username);
         await saveReviewResult(mockResult);
         setReviewResult(mockResult);
@@ -282,7 +301,13 @@ export default function App() {
           </div>
         )}
 
-        {!showSettings && isLoading && <LoadingScreen username={config?.username || ''} />}
+        {!showSettings && isLoading && (
+          <LoadingScreen
+            username={config?.username || ''}
+            mode={loadingMode}
+            currentStep={loadingStep}
+          />
+        )}
 
         {!showSettings && !isLoading && !reviewResult && config?.username && (
           <div className="action-buttons">

@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 interface Props {
   username: string;
+  mode?: 'demo' | 'analyze';
+  currentStep?: number;
 }
 
-const loadingSteps = [
+const demoSteps = [
   { emoji: '🔍', text: '正在抓取对局数据...', delay: 0 },
   { emoji: '📊', text: '分析每一步棋...', delay: 800 },
   { emoji: '🧠', text: 'AI 正在思考...', delay: 1600 },
@@ -12,22 +14,35 @@ const loadingSteps = [
   { emoji: '🏆', text: '完成!', delay: 3200 },
 ];
 
-export function LoadingScreen({ username }: Props) {
-  const [currentStep, setCurrentStep] = useState(0);
+const analyzeSteps = [
+  { emoji: '🔍', text: '正在获取棋局...', delay: 0 },
+  { emoji: '📡', text: '正在连接服务器...', delay: 600 },
+  { emoji: '📊', text: '正在分析棋局...', delay: 1200 },
+  { emoji: '🧠', text: 'AI 正在思考...', delay: 1800 },
+  { emoji: '✨', text: '生成复盘结果...', delay: 2400 },
+];
+
+export function LoadingScreen({ username, mode = 'demo', currentStep: externalStep }: Props) {
+  const [internalStep, setInternalStep] = useState(0);
+  const steps = mode === 'analyze' ? analyzeSteps : demoSteps;
+  const currentStep = externalStep ?? internalStep;
 
   useEffect(() => {
+    // 如果是外部控制步骤，不启动内部定时器
+    if (externalStep !== undefined) return;
+
     const timers: number[] = [];
-    
-    loadingSteps.forEach((step, index) => {
+
+    steps.forEach((step, index) => {
       if (index > 0) {
         timers.push(window.setTimeout(() => {
-          setCurrentStep(index);
+          setInternalStep(index);
         }, step.delay));
       }
     });
 
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [externalStep]);
 
   return (
     <div className="loading-screen">
@@ -43,25 +58,17 @@ export function LoadingScreen({ username }: Props) {
       <div className="loading-content">
         <p className="loading-user">@{username}</p>
         <div className="loading-steps">
-          {loadingSteps.slice(0, currentStep + 1).map((step, index) => (
-            <div key={index} className="loading-step">
-              <span className="step-emoji">{step.emoji}</span>
-              <span className="step-text">{step.text}</span>
-            </div>
-          ))}
-          {currentStep < loadingSteps.length - 1 && (
-            <div className="loading-step active">
-              <span className="step-emoji spinner">⚡</span>
-              <span className="step-text">思考中...</span>
-            </div>
-          )}
+          <div className="loading-step active" key={currentStep}>
+            <span className="step-emoji spinner">{steps[currentStep].emoji}</span>
+            <span className="step-text">{steps[currentStep].text}</span>
+          </div>
         </div>
       </div>
 
       <div className="progress-bar">
-        <div 
-          className="progress-fill" 
-          style={{ width: `${((currentStep + 1) / loadingSteps.length) * 100}%` }}
+        <div
+          className="progress-fill"
+          style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
         />
       </div>
     </div>
