@@ -1,25 +1,28 @@
 /* ============================================
-   Chess Coach - Details Page
+   Chess Coach - Details Page (Light Fresh Theme)
    ============================================ */
 
 :root {
-  --bg-primary: #0d0d1a;
-  --bg-secondary: #151528;
-  --bg-card: #1a1a2e;
-  --bg-input: #12121f;
+  /* Light theme colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
 
-  --neon-cyan: #00f5ff;
-  --neon-pink: #ff00ff;
-  --neon-green: #39ff14;
-  --neon-yellow: #ffff00;
-  --neon-red: #ff3131;
+  /* Accent colors */
+  --accent-blue: #3b82f6;
+  --accent-green: #22c55e;
+  --accent-orange: #f97316;
+  --accent-red: #ef4444;
+  --accent-yellow: #eab308;
 
-  --text-primary: #ffffff;
-  --text-secondary: #b8b8d0;
-  --text-muted: #6b6b8a;
+  /* Text colors */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
 
-  --gradient-gold: linear-gradient(135deg, #ffd700, #ff8c00);
-  --gradient-cyber: linear-gradient(135deg, #00f5ff, #bf00ff);
+  /* Border */
+  --border-color: #e2e8f0;
 
   --space-xs: 4px;
   --space-sm: 8px;
@@ -27,9 +30,12 @@
   --space-lg: 24px;
   --space-xl: 32px;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 * {
@@ -39,7 +45,7 @@
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
@@ -58,7 +64,7 @@ body {
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
   padding-bottom: var(--space-md);
-  border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
@@ -77,13 +83,13 @@ body {
 
 .header-text .subtitle {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .btn-back {
   background: transparent;
-  border: 1px solid var(--neon-cyan);
-  color: var(--neon-cyan);
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-blue);
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -92,7 +98,7 @@ body {
 }
 
 .btn-back:hover {
-  background: rgba(0, 245, 255, 0.1);
+  background: rgba(59, 130, 246, 0.05);
 }
 
 /* Loading */
@@ -109,7 +115,7 @@ body {
   width: 40px;
   height: 40px;
   border: 3px solid var(--bg-secondary);
-  border-top-color: var(--neon-cyan);
+  border-top-color: var(--accent-blue);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -121,10 +127,11 @@ body {
 /* User Section */
 .user-section {
   background: var(--bg-card);
-  border: 2px solid var(--neon-cyan);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
   margin-bottom: var(--space-lg);
+  box-shadow: var(--shadow-md);
 }
 
 .user-info {
@@ -137,16 +144,16 @@ body {
 .user-badge {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--neon-cyan);
+  color: var(--accent-blue);
 }
 
 .title-badge {
-  background: var(--gradient-gold);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: var(--accent-green);
+  padding: 2px var(--space-sm);
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 0.95rem;
+  color: white;
 }
 
 .stats-row {
@@ -171,15 +178,15 @@ body {
 
 .stat-item .stat-label {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .stat-item.accuracy .stat-value {
-  color: var(--neon-green);
+  color: var(--accent-green);
 }
 
 .stat-item.xp .stat-value {
-  color: var(--neon-yellow);
+  color: var(--accent-orange);
 }
 
 /* Sections */
@@ -188,7 +195,8 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
   margin-bottom: var(--space-lg);
-  border: 1px solid rgba(0, 245, 255, 0.1);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
 }
 
 .section-title {
@@ -205,7 +213,7 @@ body {
   padding: var(--space-md);
   line-height: 1.7;
   color: var(--text-secondary);
-  border-left: 3px solid var(--neon-cyan);
+  border-left: 3px solid var(--accent-blue);
 }
 
 /* Lists */
@@ -225,7 +233,7 @@ ul {
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--neon-green);
+  color: var(--accent-green);
   font-weight: bold;
 }
 
@@ -240,7 +248,7 @@ ul {
   content: '!';
   position: absolute;
   left: 0;
-  color: var(--neon-yellow);
+  color: var(--accent-yellow);
   font-weight: bold;
 }
 
@@ -261,7 +269,7 @@ ul {
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   padding: var(--space-md);
-  border-left: 3px solid var(--neon-red);
+  border-left: 3px solid var(--accent-red);
 }
 
 .mistake-header {
@@ -272,8 +280,8 @@ ul {
 }
 
 .move-badge {
-  background: rgba(255, 49, 49, 0.2);
-  color: var(--neon-red);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--accent-red);
   padding: 2px 8px;
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
@@ -302,7 +310,7 @@ ul {
   background: var(--bg-secondary);
   border-radius: var(--radius-md);
   padding: var(--space-md);
-  border-left: 3px solid var(--neon-green);
+  border-left: 3px solid var(--accent-green);
 }
 
 .brilliant-header {
@@ -313,7 +321,7 @@ ul {
 }
 
 .brilliant-move {
-  color: var(--neon-green);
+  color: var(--accent-green);
 }
 
 .brilliant-analysis {
@@ -351,16 +359,16 @@ ul {
 }
 
 .error-state {
-  color: var(--neon-red);
+  color: var(--accent-red);
 }
 
 .error-icon {
-  color: var(--neon-red);
+  color: var(--accent-red);
 }
 
 /* Button */
 .btn {
-  background: var(--gradient-cyber);
+  background: var(--accent-blue);
   border: none;
   border-radius: var(--radius-md);
   padding: var(--space-md) var(--space-lg);
@@ -372,6 +380,6 @@ ul {
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 245, 255, 0.4);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
