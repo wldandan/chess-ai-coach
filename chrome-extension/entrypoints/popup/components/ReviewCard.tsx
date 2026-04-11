@@ -64,17 +64,20 @@ export function ReviewCard({ result, onReset }: Props) {
         </div>
       </div>
 
-      <div className="card-footer">
-        <button className="btn-secondary" onClick={() => {
+      <div className="card-footer card-footer-3col">
+        <button className="btn-icon-text" onClick={() => {
           window.open(chrome.runtime.getURL('details.html'), '_blank');
         }}>
-          📋 查看明细
+          <span className="btn-icon">📋</span>
+          <span className="btn-label">查看</span>
+          <span className="btn-label-sub">明细</span>
         </button>
-        <button className="btn-secondary" onClick={onReset}>
-          🔄 重新分析
+        <button className="btn-icon-text" onClick={onReset}>
+          <span className="btn-icon">🔄</span>
+          <span className="btn-label">重新</span>
+          <span className="btn-label-sub">分析</span>
         </button>
-        <button className="btn-primary" onClick={() => {
-          // Share functionality
+        <button className="btn-icon-text" onClick={() => {
           navigator.clipboard?.writeText(
             `🏆 Chess Coach 复盘结果\n` +
             `@${username}\n` +
@@ -83,7 +86,9 @@ export function ReviewCard({ result, onReset }: Props) {
             `✨ 妙着: ${brilliants} | 🟡 漏着: ${mistakes} | 🔴 大失误: ${blunders}`
           );
         }}>
-          📤 分享成果
+          <span className="btn-icon">📤</span>
+          <span className="btn-label">分享</span>
+          <span className="btn-label-sub">成果</span>
         </button>
       </div>
     </div>
